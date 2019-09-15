@@ -65,9 +65,34 @@ export class Ec2LaunchTemplateWithCloudwatchAgentStack extends cdk.Stack {
         iamInstanceProfile: {
           arn: ec2IAMProfile.attrArn,
         },
-        userData: cdk.Fn.base64(`
-          #!/bin/bash
-          rpm -Uvh https://s3.${cdk.Stack.of(this).region}.amazonaws.com/amazoncloudwatch-agent-${cdk.Stack.of(this).region}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+        userData: cdk.Fn.base64(`#!/bin/bash -xe
+          DISTRIBUTION="amazon_linux"
+          CPE=""
+          if [ -e "/etc/system-release-cpe" ]; then CPE=$(</etc/system-release-cpe);
+          elif [ -e "/etc/os-release" ]; then 
+            CPE=$(cat /etc/os-release | grep CPE_NAME | cut -d'=' -f2)
+            if [ "$CPE" == "" ]; then
+              DISTRIBUTION=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+            fi
+          fi
+          if [ "$CPE" != "" ]; then 
+            IFS=':' read -ra cpe_array <<< "$CPE"
+            DISTRIBUTION=\${cpe_array[2]}
+            if [ "$DISTRIBUTION" == "o" ]; then
+              DISTRIBUTION="amazon_linux"
+            fi
+          fi
+          case "$DISTRIBUTION" in
+          "debian"|"ubuntu")
+            TEMP_DEB="$(mktemp)" &&
+            wget -O "$TEMP_DEB" "https://s3.${cdk.Stack.of(this).region}.amazonaws.com/amazoncloudwatch-agent-${cdk.Stack.of(this).region}/$DISTRIBUTION/amd64/latest/amazon-cloudwatch-agent.deb" &&
+            dpkg -i "$TEMP_DEB"
+            rm -f "$TEMP_DEB"
+            ;;
+          *)
+            rpm -Uvh https://s3.${cdk.Stack.of(this).region}.amazonaws.com/amazoncloudwatch-agent-${cdk.Stack.of(this).region}/$DISTRIBUTION/amd64/latest/amazon-cloudwatch-agent.rpm
+            ;;
+          esac
           /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${parameterName} -s
         `)
       }

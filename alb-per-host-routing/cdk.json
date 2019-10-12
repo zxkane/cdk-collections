@@ -1,0 +1,5 @@
+{
+  "app": "npx ts-node bin/alb-per-host-routing.ts",
+  "vpcId": "",
+  "hosts": ""
+}

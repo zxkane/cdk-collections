@@ -5,6 +5,8 @@ import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
 import route53 = require("@aws-cdk/aws-route53");
 import targets = require('@aws-cdk/aws-route53-targets');
 import certmgr = require("@aws-cdk/aws-certificatemanager");
+import { DockerImageAsset } from '@aws-cdk/aws-ecr-assets';
+const path = require('path');
 
 interface ALBPerHostRoutingProps extends cdk.StackProps {
   vpcId: string,
@@ -51,6 +53,10 @@ export class AlbPerHostRoutingStack extends cdk.Stack {
     //   return certificate;
     // });
 
+    const asset = new DockerImageAsset(this, 'ServerImage', {
+      directory: path.join(__dirname, '../assets')
+    });
+
     const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc
     });
@@ -91,10 +97,17 @@ export class AlbPerHostRoutingStack extends cdk.Stack {
         cpu: 256
       });
       const container = fargateTaskDefinition.addContainer(`WebContainer-${legalHostname}`, {
-        // Use an image from DockerHub
-        image: ecs.ContainerImage.fromRegistry("nginx:1.17-alpine"),
+        // Use an image from previous built image
+        image: ecs.ContainerImage.fromEcrRepository(asset.repository),
         memoryLimitMiB: 128,
         // ... other options here ...
+        healthCheck: {
+          command: [`curl -f -s http://localhost/ || exit 1`],
+          interval: cdk.Duration.seconds(10), 
+          timeout: cdk.Duration.seconds(5), 
+          startPeriod: cdk.Duration.seconds(5), 
+          retries: 3, 
+        },
       });
       container.addPortMappings({
         containerPort: 80,
@@ -102,7 +115,7 @@ export class AlbPerHostRoutingStack extends cdk.Stack {
       const service = new ecs.FargateService(this, `Service-${legalHostname}`, {
         cluster,
         taskDefinition: fargateTaskDefinition,
-        desiredCount: 2
+        desiredCount: 1
       });
 
       const target = listener443.addTargets(`Forward-For-${legalHostname}`, {

@@ -10,7 +10,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        hostname = self.headers.get('X-Forwarded-Host')
+        hostname = self.headers.get('Host')
         if (hostname == None):
             hostname = socket.gethostname()
         content = '''

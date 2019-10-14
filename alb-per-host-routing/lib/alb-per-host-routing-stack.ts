@@ -102,11 +102,11 @@ export class AlbPerHostRoutingStack extends cdk.Stack {
         memoryLimitMiB: 128,
         // ... other options here ...
         healthCheck: {
-          command: [`curl -f -s http://localhost/ || exit 1`],
+          command: [`wget -q -O - http://localhost || exit 1`],
           interval: cdk.Duration.seconds(10), 
           timeout: cdk.Duration.seconds(5), 
-          startPeriod: cdk.Duration.seconds(5), 
-          retries: 3, 
+          startPeriod: cdk.Duration.seconds(3), 
+          retries: 5, 
         },
       });
       container.addPortMappings({

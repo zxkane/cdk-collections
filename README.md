@@ -5,3 +5,4 @@
 - [EC2 launch template that installs Cloudwatch Agent and use default configuration from SSM with memory and disk usage metrics](ec2-launch-template-with-cloudwatch-agent/README.md)
 - [ALB route requests per hostname](alb-per-host-routing/README.md)
 - [EKS cluster exposing service via AWS ELB](eks/eks-loadbalancer/README.md)
+- [Dynamically provisioning shared EFS volume for deployment](eks/storage-class-efs/README.md)

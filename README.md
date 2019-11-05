@@ -6,3 +6,4 @@
 - [ALB route requests per hostname](alb-per-host-routing/README.md)
 - [EKS cluster exposing service via AWS ELB](eks/eks-loadbalancer/README.md)
 - [Dynamically provisioning shared EFS volume for deployment](eks/storage-class-efs/README.md)
+- [RDS audit log analysis](rds-audit-log/README.md)

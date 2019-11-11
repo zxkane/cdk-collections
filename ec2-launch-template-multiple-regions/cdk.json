@@ -1,0 +1,3 @@
+{
+  "app": "npx ts-node bin/ec2-launch-template-multiple-regions.ts"
+}

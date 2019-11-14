@@ -65,6 +65,7 @@ export class Ec2LaunchTemplateMultipleRegionsStack extends cdk.Stack {
             fi
             ;;
           *) # amazon linux/linux2, centos, rhel
+            yum update -y
             yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
             yum install -y docker tmux
             rpm -Uvh https://s3.${stack.region}.amazonaws.com/amazoncloudwatch-agent-${stack.region}/$DISTRIBUTION/amd64/latest/amazon-cloudwatch-agent.rpm

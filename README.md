@@ -8,3 +8,5 @@
 - [EKS cluster exposing service via AWS ELB](eks/eks-loadbalancer/README.md)
 - [Dynamically provisioning shared EFS volume for deployments in EKS](eks/storage-class-efs/README.md)
 - [RDS audit log analysis](rds-audit-log/README.md)
+- [Microservices on ECS including CloudMap, App Mesh, X-Ray](https://github.com/zxkane/alibabacloud-microservice-demo/tree/migration/infrastructure#app-cluster)
+- [CI/CD via CodeBuild, CodePipeline](https://github.com/zxkane/alibabacloud-microservice-demo/tree/migration/infrastructure#devops-pipeline)

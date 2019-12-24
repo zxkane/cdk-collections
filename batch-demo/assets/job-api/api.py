@@ -28,7 +28,7 @@ def handler(event, context):
     if 'GET' != event['httpMethod']:
         body['message'] = 'Only http method "GET" is allowed.'
     else:
-        jobIdRegex = r"\/jobs\/(\w+)$"
+        jobIdRegex = r"\/jobs\/(.+)$"
         matches = re.search(jobIdRegex, event['path'])
 
         if matches:

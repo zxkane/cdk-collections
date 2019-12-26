@@ -9,6 +9,7 @@ logger.setLevel(logging.INFO)
 
 queueName = os.environ.get('QUEUE_NAME') or 'SurfingJobQueue'
 
+
 def receiver(event, context):
     statusCode = 400
     body = {
@@ -17,35 +18,42 @@ def receiver(event, context):
 
     JOB_KEY = 'job_id'
 
-    logger.info('path: %s, methos: %s', event['path'], event['httpMethod'])
+    requestBody = event
+    processable = True
+    if 'path' in event and 'httpMethod' in event:
+        logger.info('path: %s, methos: %s', event['path'], event['httpMethod'])
 
-    if 'PUT' != event['httpMethod']:
-        body['message'] = 'Only http method "PUT" is allowed.'
-    else:
-        try:
-            requestBody = None
-            if (event['isBase64Encoded']):
-                requestBody = json.loads(base64.b64decode(event['body']))
-            else:
-                requestBody = json.loads(event['body'])
-            logger.info(f'Body: {requestBody}')
-            
-            # send request to sqs queue for next processing
+        if 'PUT' != event['httpMethod']:
+            body['message'] = 'Only http method "PUT" is allowed.'
+            processable = False
+        else:
             try:
-                sqs = boto3.client('sqs')
-                urlResponse = sqs.get_queue_url(QueueName=queueName)
-                response = sqs.send_message(
-                    QueueUrl=urlResponse['QueueUrl'],
-                    MessageBody=json.dumps(requestBody)
-                )
-                body['message'] = 'Job "{}" is submitted with message id "{}".'.format(
-                    requestBody[JOB_KEY], response['MessageId'])
-                statusCode = 200
-            except Exception as e:
-                statusCode = 500
-                body['message'] = e.message
-        except json.JSONDecodeError:
-            body['message'] = 'Invaid request body, not json object.'
+                requestBody = None
+                if (event['isBase64Encoded']):
+                    requestBody = json.loads(base64.b64decode(event['body']))
+                else:
+                    requestBody = json.loads(event['body'])
+            except json.JSONDecodeError:
+                body['message'] = 'Invaid request body, not json object.'
+                processable = False
+    
+    logger.info(f'Body: {requestBody}')
+
+    # send request to sqs queue for next processing
+    if processable:
+        try:
+            sqs = boto3.client('sqs')
+            urlResponse = sqs.get_queue_url(QueueName=queueName)
+            response = sqs.send_message(
+                QueueUrl=urlResponse['QueueUrl'],
+                MessageBody=json.dumps(requestBody)
+            )
+            body['message'] = 'Job "{}" is submitted with message id "{}".'.format(
+                requestBody[JOB_KEY], response['MessageId'])
+            statusCode = 200
+        except Exception as e:
+            statusCode = 500
+            body['message'] = e.message
         except KeyError:
             body['message'] = f'Required "{JOB_KEY}" is not specified in request body.'
 
@@ -55,12 +63,3 @@ def receiver(event, context):
     }
 
     return response
-
-    # Use this code if you don't use the http event with the LAMBDA-PROXY
-    # integration
-    """
-    return {
-        "message": "Go Serverless v1.0! Your function executed successfully!",
-        "event": event
-    }
-    """

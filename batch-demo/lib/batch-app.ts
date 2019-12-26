@@ -1,3 +1,4 @@
+import apigateway = require('@aws-cdk/aws-apigateway');
 import batch = require('@aws-cdk/aws-batch');
 import cdk = require('@aws-cdk/core');
 import dynamodb = require('@aws-cdk/aws-dynamodb');
@@ -11,6 +12,7 @@ import path = require('path');
 import sqs = require('@aws-cdk/aws-sqs');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { DockerImageAsset } from '@aws-cdk/aws-ecr-assets';
+import { version } from 'punycode';
 
 export class BatchAppStack extends cdk.Stack {
 
@@ -47,11 +49,7 @@ export class BatchAppStack extends cdk.Stack {
             }
         });
 
-        const lb = new elbv2.ApplicationLoadBalancer(this, 'ALB-For-Receiver', {
-            vpc,
-            internetFacing: true, // set 'false' if only for intranet 
-            http2Enabled: false
-        });
+        const apiMode = (this.node.tryGetContext('ApiMode') || 'ALB').toUpperCase();
 
         const taskReceiverFn = new lambda.Function(this, 'TaskReceiver', {
             runtime: lambda.Runtime.PYTHON_3_7,
@@ -71,31 +69,6 @@ export class BatchAppStack extends cdk.Stack {
         });
 
         sqsQueue.grantSendMessages(taskReceiverFn);
-
-        const apiPath = '/v1/new-task';
-        const httpPort = 9999; // requires ICP or whitelist for using 80/443
-        const listener80 = lb.addListener('Listener80', { 
-            port: httpPort,
-            protocol: elbv2.ApplicationProtocol.HTTP
-        });
-        listener80.addFixedResponse('Default404', {
-            statusCode: '404',
-            contentType: elbv2.ContentType.APPLICATION_JSON,
-            messageBody: JSON.stringify({
-                msg: 'not found'
-            }),
-        });
-        listener80.addTargets(`Forward-For-TaskReceiverFn`, {
-            pathPattern: apiPath,
-            priority: 10,
-            targets: [new elbv2Target.LambdaTarget(taskReceiverFn)],
-        });
-
-        new cdk.CfnOutput(this, 'Endpoint', {
-            value: `http://${lb.loadBalancerDnsName}:${httpPort}${apiPath}`,
-            exportName: 'TaskReceiver',
-            description: 'endpoint of task receiver'
-        });
 
         /**
          * Create a DynamoDB table for presisting the job info
@@ -307,16 +280,80 @@ export class BatchAppStack extends cdk.Stack {
             }
         });
         jobTable.grantReadData(jobAPIFn);
-        const jobAPIPath = '/v1/jobs/'
-        listener80.addTargets(`Forward-For-JobAPI`, {
-            pathPattern: `${jobAPIPath}*`,
-            priority: 20,
-            targets: [new elbv2Target.LambdaTarget(jobAPIFn)],
-        });
-        new cdk.CfnOutput(this, 'Restful Endpoint', {
-            value: `http://${lb.loadBalancerDnsName}:${httpPort}${jobAPIPath}<job-id>`,
-            exportName: 'JobAPI',
-            description: 'endpoint of job api'
-        });
+
+        const apiVersion = 'v1';
+        const apiTasks = 'tasks';
+        const apiSubmitTask = 'new-task';
+        const jobAPIPath = `/${apiVersion}/${apiTasks}/`;
+        const submitAPIPath = `/${apiVersion}/${apiSubmitTask}`;
+
+        switch (apiMode) {
+            case 'ALB':
+                const lb = new elbv2.ApplicationLoadBalancer(this, 'ALB-For-Receiver', {
+                    vpc,
+                    internetFacing: true, // set 'false' if only for intranet 
+                    http2Enabled: false
+                });
+                const httpPort = 9999; // requires ICP or whitelist for using 80/443
+                const listener80 = lb.addListener('Listener80', { 
+                    port: httpPort,
+                    protocol: elbv2.ApplicationProtocol.HTTP
+                });
+                listener80.addFixedResponse('Default404', {
+                    statusCode: '404',
+                    contentType: elbv2.ContentType.APPLICATION_JSON,
+                    messageBody: JSON.stringify({
+                        msg: 'not found'
+                    }),
+                });
+                listener80.addTargets(`Forward-For-TaskReceiverFn`, {
+                    pathPattern: submitAPIPath,
+                    priority: 10,
+                    targets: [new elbv2Target.LambdaTarget(taskReceiverFn)],
+                });
+                listener80.addTargets(`Forward-For-JobAPI`, {
+                    pathPattern: `${jobAPIPath}*`,
+                    priority: 20,
+                    targets: [new elbv2Target.LambdaTarget(jobAPIFn)],
+                });
+                new cdk.CfnOutput(this, 'Endpoint', {
+                    value: `http://${lb.loadBalancerDnsName}:${httpPort}${submitAPIPath}`,
+                    exportName: 'TaskReceiver',
+                    description: 'endpoint of task receiver'
+                });        
+                new cdk.CfnOutput(this, 'Restful Endpoint', {
+                    value: `http://${lb.loadBalancerDnsName}:${httpPort}${jobAPIPath}<job-id>`,
+                    exportName: 'JobAPI',
+                    description: 'endpoint of job api'
+                });
+                break;
+            case 'RESTAPI':
+                const api = new apigateway.RestApi(this, 'task-api', {
+                    deployOptions: {
+                        stageName: apiVersion,
+                        loggingLevel: apigateway.MethodLoggingLevel.INFO,
+                        dataTraceEnabled: true
+                    }
+                });
+                const submitTask = api.root.addResource(apiSubmitTask);
+                submitTask.addMethod('PUT', new apigateway.LambdaIntegration(taskReceiverFn));
+                const tasks = api.root.addResource(apiTasks);
+                const task = tasks.addResource('{task}');
+                task.addMethod('GET', new apigateway.LambdaIntegration(jobAPIFn));
+                new cdk.CfnOutput(this, 'Endpoint', {
+                    value: `${submitTask.url}`,
+                    exportName: 'TaskReceiver',
+                    description: 'endpoint of task receiver'
+                });        
+                new cdk.CfnOutput(this, 'Restful Endpoint', {
+                    value: `${task.url}`,
+                    exportName: 'JobAPI',
+                    description: 'endpoint of job api'
+                });
+                break;
+            default:
+                throw new Error(`Unknown api mode '${apiMode}' is specified.`);
+        }
+        
     }
 }

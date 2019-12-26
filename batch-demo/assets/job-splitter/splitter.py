@@ -10,7 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 JOB_DEFINITION_NAME = os.environ.get(
-    'JOB_DEFINITION_NAME') or 'SurfingComputing'
+    'JOB_DEFINITION_NAME') or 'BatchAppComputing'
 JOB_QUEUE = os.environ.get('JOB_QUEUE') or 'ComputeJobQueue'
 TABLE_NAME = os.environ.get('TABLE_NAME') or 'BatchJobs'
 

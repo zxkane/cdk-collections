@@ -16,6 +16,8 @@ pip3 install -r assets/job-api/requirements.txt --target ./assets/job-api/packag
 cdk deploy BatchAppStack
 # or expose restful APIs via API Gateway
 cdk deploy -cApiMode=restapi
+# or secure the endpoints of API Gateway by all IAM users in current account
+cdk deploy -cApiMode=restapi -c Auth=iam
 ```
 Below resources would be created for this stack,
 - Lambda Function **TaskReceiver** to receive the job request behind a public ALB or API gateway based on the given `ApiMode` option
@@ -29,6 +31,9 @@ Below resources would be created for this stack,
 ### Schedule a long-running batch task behind ALB
 ```shell
 curl -X PUT http://<alb hostname>:9999/v1/new-task  -H 'content-type:application/json' -d '{"job_id": "my-batch-job-id-xxsss22", "universe": ["000002.XSHE", "000004.XSHE"]}'
+# Send request with AWS v4 signature
+aws sts assume-role --role-arn arn:aws:iam::<accountid>:role/BatchAppStack-API-Execute-Role --role-session-name session1
+# send request in Postman with AWS signature or generate v4 signature mannually per doc https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html
 ```
 ### Fetch the job status or result behind ALB
 ```shell

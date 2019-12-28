@@ -50,6 +50,7 @@ export class BatchAppStack extends cdk.Stack {
         });
 
         const apiMode = (this.node.tryGetContext('ApiMode') || 'ALB').toUpperCase();
+        const authType = (this.node.tryGetContext('Auth') || '').toUpperCase();
 
         const taskReceiverFn = new lambda.Function(this, 'TaskReceiver', {
             runtime: lambda.Runtime.PYTHON_3_7,
@@ -336,10 +337,42 @@ export class BatchAppStack extends cdk.Stack {
                     }
                 });
                 const submitTask = api.root.addResource(apiSubmitTask);
-                submitTask.addMethod('PUT', new apigateway.LambdaIntegration(taskReceiverFn));
+                let methodOptions = {} as apigateway.MethodOptions;
+                if (authType == 'IAM') {
+                    methodOptions = Object.assign(methodOptions, {
+                        authorizationType: apigateway.AuthorizationType.IAM,
+                    });
+                    
+                }
+                const submitTaskMethod = submitTask.addMethod('PUT', new apigateway.LambdaIntegration(taskReceiverFn), methodOptions);
                 const tasks = api.root.addResource(apiTasks);
-                const task = tasks.addResource('{task}');
-                task.addMethod('GET', new apigateway.LambdaIntegration(jobAPIFn));
+                const taskProxy = '{task}';
+                const task = tasks.addResource(taskProxy);
+                const queryTaskMethod = task.addMethod('GET', new apigateway.LambdaIntegration(jobAPIFn), methodOptions);
+                if (authType == 'IAM') {
+                    // create a role for execute APIs by any user in current account
+                    const apiExecutePolicy = new iam.PolicyStatement({
+                        effect: iam.Effect.ALLOW,
+                        actions: [
+                            "execute-api:Invoke",
+                            "execute-api:InvalidateCache",
+                            "execute-api:ManageConnections"
+                        ],
+                        resources: [
+                            submitTaskMethod.methodArn, 
+                            queryTaskMethod.methodArn.replace(taskProxy, '*'),
+                        ],
+                    });
+                    new iam.Role(this, 'APIExecuteRole', {
+                        roleName: `${stack.stackName}-API-Execute-Role`,
+                        assumedBy: new iam.AccountPrincipal(stack.account),
+                        inlinePolicies: {
+                            api: new iam.PolicyDocument({
+                                statements: [apiExecutePolicy]
+                            }),
+                        }
+                    });
+                }
                 new cdk.CfnOutput(this, 'Endpoint', {
                     value: `${submitTask.url}`,
                     exportName: 'TaskReceiver',

@@ -1,0 +1,37 @@
+<html>
+
+<head>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <script>
+        function loadUserInfo() {
+            let ele = document.querySelector('h1');
+            if (window.location.hash) {
+                let hashObj = window.location.hash.substr(1).split("&")
+                    .map(v => v.split("="))
+                    .reduce((pre, [key, value]) => ({ ...pre, [key]: value }), {});
+
+                fetch('/v1/cognito/user-info', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 'token': hashObj.id_token })
+                }).then(response => response.json())
+                    .then(data => {
+                        ele.innerHTML = 'Hi ' + (data.name ? data.name : data.email)
+                            + ', you are already signed in!';
+                    })
+                    .catch(error => console.error(error));
+            } else {
+                ele.innerHTML = 'No Cognito oauth2 call back token is found.';
+            }
+        }
+    </script>
+</head>
+
+<body onload="loadUserInfo();">
+    <h1></h1>
+</body>
+
+</html>

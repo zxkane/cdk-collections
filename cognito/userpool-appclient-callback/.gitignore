@@ -1,0 +1,14 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+cdk.context.json
+
+# lambda dependencies
+!assets/get-user/requirements.txt
+!assets/get-user/decode-verify-jwt.py
+assets/get-user/

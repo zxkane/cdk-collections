@@ -47,7 +47,6 @@ export class Ec2LaunchTemplateWithCloudwatchAgentStack extends cdk.Stack {
 
     // create ec2's instance profile for pushing metrics and get conf of cloudwatch Agent
     const ec2Role = new iam.Role(this, 'CloudWatchAgentRole', {
-      roleName: 'CloudWatchAgentRole',
       assumedBy: new iam.CompositePrincipal(
         new iam.ServicePrincipal('ec2.amazonaws.com')),
       managedPolicies: [

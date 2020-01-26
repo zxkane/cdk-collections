@@ -9,6 +9,12 @@ cdk.out
 cdk.context.json
 
 # python dependencies
-assets/task-receiver/package/
-assets/job-splitter/package/
-assets/job-api/package/
+assets/task-receiver/
+!assets/task-receiver/task.py
+assets/job-splitter/
+!assets/job-splitter/splitter.py
+assets/job-api/
+!assets/job-api/api.py
+
+!assets/**/requirements.txt
+!assets/**/README.md

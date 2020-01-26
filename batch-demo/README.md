@@ -9,15 +9,15 @@ It's the infrastructure code of an AWS Batch application that will schedule the 
 ## How to deploy batch demo app
 ```shell
 # install dependencies of lambda functions
-pip3 install -r assets/job-splitter/requirements.txt --target ./assets/job-splitter/package
-pip3 install -r assets/task-receiver/requirements.txt --target ./assets/task-receiver/package
-pip3 install -r assets/job-api/requirements.txt --target ./assets/job-api/package
+pip3 install -r assets/job-splitter/requirements.txt --target ./assets/job-splitter/
+pip3 install -r assets/task-receiver/requirements.txt --target ./assets/task-receiver/
+pip3 install -r assets/job-api/requirements.txt --target ./assets/job-api/
 
 cdk deploy BatchAppStack
 # or expose restful APIs via API Gateway
-cdk deploy -cApiMode=restapi
+./node_modules/aws-cdk/bin/cdk deploy -cApiMode=restapi
 # or secure the endpoints of API Gateway by all IAM users in current account
-cdk deploy -cApiMode=restapi -c Auth=iam
+./node_modules/aws-cdk/bin/cdk deploy -cApiMode=restapi -c Auth=iam
 ```
 Below resources would be created for this stack,
 - Lambda Function **TaskReceiver** to receive the job request behind a public ALB or API gateway based on the given `ApiMode` option

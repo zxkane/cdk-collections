@@ -15,9 +15,11 @@ pip3 install -r assets/job-api/requirements.txt --target ./assets/job-api/
 
 cdk deploy BatchAppStack
 # or expose restful APIs via API Gateway
-./node_modules/aws-cdk/bin/cdk deploy -cApiMode=restapi
+./node_modules/aws-cdk/bin/cdk deploy -c ApiMode=restapi
+# or expose restful APIs via API Gateway v2 HTTP API
+./node_modules/aws-cdk/bin/cdk deploy -c ApiMode=httpapi
 # or secure the endpoints of API Gateway by all IAM users in current account
-./node_modules/aws-cdk/bin/cdk deploy -cApiMode=restapi -c Auth=iam
+./node_modules/aws-cdk/bin/cdk deploy -c ApiMode=restapi -c Auth=iam
 ```
 Below resources would be created for this stack,
 - Lambda Function **TaskReceiver** to receive the job request behind a public ALB or API gateway based on the given `ApiMode` option

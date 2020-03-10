@@ -1,4 +1,5 @@
 import apigateway = require('@aws-cdk/aws-apigateway');
+import apigatewayv2 = require('@aws-cdk/aws-apigatewayv2');
 import batch = require('@aws-cdk/aws-batch');
 import cdk = require('@aws-cdk/core');
 import dynamodb = require('@aws-cdk/aws-dynamodb');
@@ -12,7 +13,6 @@ import path = require('path');
 import sqs = require('@aws-cdk/aws-sqs');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { DockerImageAsset } from '@aws-cdk/aws-ecr-assets';
-import { version } from 'punycode';
 
 export class BatchAppStack extends cdk.Stack {
 
@@ -383,6 +383,69 @@ export class BatchAppStack extends cdk.Stack {
                     exportName: 'JobAPI',
                     description: 'endpoint of job api'
                 });
+                break;
+            case 'HTTPAPI':
+                const apiv2 = new apigatewayv2.CfnApi(this, `task-api`, {
+                    name: 'TaskAPI',
+                    protocolType: 'HTTP',
+                });
+                const v1Stage = new apigatewayv2.CfnStage(this, 'V1Stage', {
+                    apiId: apiv2.ref,
+                    stageName: apiVersion,
+                    autoDeploy: true,
+                });
+
+                const taskInfoIntegration = new apigatewayv2.CfnIntegration(this, `TaskInfoInteg`, {
+                    apiId: apiv2.ref,
+                    integrationType: 'AWS_PROXY',
+                    connectionType: 'INTERNET',
+                    description: 'Integ with lambda get task info by task id',
+                    integrationUri: `arn:aws:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${jobAPIFn.functionArn}/invocations`,
+                    integrationMethod: 'POST',
+                    payloadFormatVersion: '1.0',
+                });
+                const taskInfoMethod = 'GET';
+                const taskInfoRouteKey = `/${apiTasks}/{task}`;
+                const taskInfoRoute = new apigatewayv2.CfnRoute(this, 'TaskInfoRoute', {
+                    apiId: apiv2.ref,
+                    routeKey: `${taskInfoMethod} ${taskInfoRouteKey}`,
+                    authorizationType: 'NONE',
+                    target: `integrations/${taskInfoIntegration.ref}`,
+                });
+                jobAPIFn.addPermission('invokeByHttpApi', {
+                    principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+                    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${taskInfoMethod}${taskInfoRouteKey}`,
+                });
+
+                const submitTaskHTTPMethod = 'PUT';
+                const submitTaskRouteKey = `/${apiSubmitTask}`;
+                const submitTaskIntegration = new apigatewayv2.CfnIntegration(this, `SubmitTaskInteg`, {
+                    apiId: apiv2.ref,
+                    integrationType: 'AWS_PROXY',
+                    connectionType: 'INTERNET',
+                    description: 'Integ with lambda submit new task',
+                    integrationUri: `arn:aws:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${taskReceiverFn.functionArn}/invocations`,
+                    integrationMethod: 'POST',
+                    payloadFormatVersion: '1.0',
+                });
+                const sumbitTaskRoute = new apigatewayv2.CfnRoute(this, 'SubmitTasksRoute', {
+                    apiId: apiv2.ref,
+                    routeKey: `${submitTaskHTTPMethod} ${submitTaskRouteKey}`,
+                    authorizationType: 'NONE',
+                    target: `integrations/${submitTaskIntegration.ref}`,
+                });
+                taskReceiverFn.addPermission('invokeByHttpApi', {
+                    principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+                    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${submitTaskHTTPMethod}${submitTaskRouteKey}`,
+                });
+
+                const apiv2Deploymnet = new apigatewayv2.CfnDeployment(this, 'APIDeployment', {
+                    apiId: apiv2.ref,
+                    stageName: v1Stage.stageName,
+                });
+                apiv2Deploymnet.node.addDependency(v1Stage);
+                apiv2Deploymnet.node.addDependency(taskInfoRoute);
+                apiv2Deploymnet.node.addDependency(sumbitTaskRoute);
                 break;
             default:
                 throw new Error(`Unknown api mode '${apiMode}' is specified.`);

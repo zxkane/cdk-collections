@@ -11,6 +11,7 @@ import lambda = require('@aws-cdk/aws-lambda');
 import logs = require('@aws-cdk/aws-logs');
 import path = require('path');
 import sqs = require('@aws-cdk/aws-sqs');
+import region_info = require('@aws-cdk/region-info');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { DockerImageAsset } from '@aws-cdk/aws-ecr-assets';
 
@@ -85,7 +86,6 @@ export class BatchAppStack extends cdk.Stack {
         const JOB_QUEUE = 'ComputeJobQueue'
 
         const batchServiceRole = new iam.Role(this, `BatchServiceRole`, {
-            roleName: `BatchApp-batch-service-role`,
             assumedBy: new iam.CompositePrincipal(
                 new iam.ServicePrincipal('batch.amazonaws.com')),
             managedPolicies: [
@@ -446,6 +446,18 @@ export class BatchAppStack extends cdk.Stack {
                 apiv2Deploymnet.node.addDependency(v1Stage);
                 apiv2Deploymnet.node.addDependency(taskInfoRoute);
                 apiv2Deploymnet.node.addDependency(sumbitTaskRoute);
+
+                const regionInfo = region_info.RegionInfo.get(stack.region);
+                new cdk.CfnOutput(this, 'SubmitTaskEndpoint', {
+                    value: `${submitTaskHTTPMethod} https://${apiv2.ref}.execute-api.${stack.region}.${regionInfo.domainSuffix}/${v1Stage.stageName}${submitTaskRouteKey}`,
+                    exportName: 'TaskReceiver',
+                    description: 'endpoint of task receiver'
+                });
+                new cdk.CfnOutput(this, 'GetInfoEndpoint', {
+                    value: `${taskInfoMethod} https://${apiv2.ref}.execute-api.${stack.region}.${regionInfo.domainSuffix}/${v1Stage.stageName}${taskInfoRouteKey}`,
+                    exportName: 'JobAPI',
+                    description: 'endpoint of job api'
+                });
                 break;
             default:
                 throw new Error(`Unknown api mode '${apiMode}' is specified.`);

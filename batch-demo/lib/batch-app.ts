@@ -400,7 +400,7 @@ export class BatchAppStack extends cdk.Stack {
                     integrationType: 'AWS_PROXY',
                     connectionType: 'INTERNET',
                     description: 'Integ with lambda get task info by task id',
-                    integrationUri: `arn:aws:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${jobAPIFn.functionArn}/invocations`,
+                    integrationUri: `arn:${stack.partition}:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${jobAPIFn.functionArn}/invocations`,
                     integrationMethod: 'POST',
                     payloadFormatVersion: '1.0',
                 });
@@ -414,7 +414,7 @@ export class BatchAppStack extends cdk.Stack {
                 });
                 jobAPIFn.addPermission('invokeByHttpApi', {
                     principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
-                    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${taskInfoMethod}${taskInfoRouteKey}`,
+                    sourceArn: `arn:${stack.partition}:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${taskInfoMethod}${taskInfoRouteKey}`,
                 });
 
                 const submitTaskHTTPMethod = 'PUT';
@@ -424,7 +424,7 @@ export class BatchAppStack extends cdk.Stack {
                     integrationType: 'AWS_PROXY',
                     connectionType: 'INTERNET',
                     description: 'Integ with lambda submit new task',
-                    integrationUri: `arn:aws:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${taskReceiverFn.functionArn}/invocations`,
+                    integrationUri: `arn:${stack.partition}:apigateway:${stack.region}:lambda:path/2015-03-31/functions/${taskReceiverFn.functionArn}/invocations`,
                     integrationMethod: 'POST',
                     payloadFormatVersion: '1.0',
                 });
@@ -436,7 +436,7 @@ export class BatchAppStack extends cdk.Stack {
                 });
                 taskReceiverFn.addPermission('invokeByHttpApi', {
                     principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
-                    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${submitTaskHTTPMethod}${submitTaskRouteKey}`,
+                    sourceArn: `arn:${stack.partition}:execute-api:${stack.region}:${stack.account}:${apiv2.ref}/${v1Stage.stageName}/${submitTaskHTTPMethod}${submitTaskRouteKey}`,
                 });
 
                 const apiv2Deploymnet = new apigatewayv2.CfnDeployment(this, 'APIDeployment', {

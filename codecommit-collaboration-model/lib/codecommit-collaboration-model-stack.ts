@@ -1,8 +1,11 @@
 import * as cdk from '@aws-cdk/core';
+import cloudformation = require('@aws-cdk/aws-cloudformation');
 import codecommit = require('@aws-cdk/aws-codecommit');
 import codebuild = require('@aws-cdk/aws-codebuild');
 import events = require('@aws-cdk/aws-events');
 import iam = require('@aws-cdk/aws-iam');
+import lambda = require('@aws-cdk/aws-lambda');
+import path = require('path');
 import targets = require('@aws-cdk/aws-events-targets')
 import { CodecommitCollaborationModel } from './codecommit-policy';
 
@@ -301,6 +304,89 @@ export class CodecommitCollaborationModelStack extends cdk.Stack {
     repo1.onCommit('CommitOnMaster', {
       branches: ['master'],
       target: new targets.CodeBuildProject(deploymentBuild),
+    });
+    
+    // create lambda based custom resource to create approval rule template
+    const codecommitApprovalRulePolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        "codecommit:CreateApprovalRuleTemplate",
+        "codecommit:DeleteApprovalRuleTemplate",
+        "codecommit:GetApprovalRuleTemplate",
+        "codecommit:UpdateApprovalRuleTemplateContent",
+        "codecommit:UpdateApprovalRuleTemplateDescription",
+        "codecommit:UpdateApprovalRuleTemplateName",
+        "codecommit:AssociateApprovalRuleTemplateWithRepository",
+        "codecommit:BatchAssociateApprovalRuleTemplateWithRepositories",
+        "codecommit:BatchDisassociateApprovalRuleTemplateFromRepositories",
+        "codecommit:DisassociateApprovalRuleTemplateFromRepository",
+        "codecommit:ListAssociatedApprovalRuleTemplatesForRepository",
+      ],
+      resources: [ '*' ],
+    });
+    const codeCommitApprovalRuleTemplateRole = new iam.Role(this, `CustomResource-CodeCommit-Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      inlinePolicies: {
+        codecommit: new iam.PolicyDocument({
+          statements: [ codecommitApprovalRulePolicy ]
+        })
+      },
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ]
+    });
+    const approvalRuleTemplateProvider = new lambda.Function(this, `CodeCommitApprovalRuleTemplate`, {
+      role: codeCommitApprovalRuleTemplateRole,
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../assets/codecommit-approval-rule-template')),
+      handler: 'codecommit.approvalRuleTemplate',
+      timeout: cdk.Duration.minutes(5),
+    });
+
+    const approvalRuleTemplaate = new cloudformation.CustomResource(this, 'CustomResource-CodeCommit-ApprovalRuleTemplate', {
+      provider: cloudformation.CustomResourceProvider.lambda(approvalRuleTemplateProvider),
+      resourceType: 'Custom::CodeCommitApprovalRuleTemplate',
+      properties: {
+        ApprovalRuleTemplateName: `approval-rule-template-${repo1.repositoryName}`,
+        ApprovalRuleTemplateDescription: `Approval rule template for repo ${repo1.repositoryName}`, // optional
+        Template: {
+          destinationReferences: [ 'refs/heads/master' ], // optional or non empty valid git references list
+          approvers: {
+            numberOfApprovalsNeeded: 2,
+            approvalPoolMembers: [ // optional
+              repoAdmin.userArn,
+              cdk.Arn.format({
+                service: 'sts',
+                region: '',
+                resource: 'assumed-role',
+                resourceName: `${buildPRRole.roleName}/*`,
+                sep: '/'
+              }, stack)
+            ]
+          }
+        }
+      }
+    });
+
+    // create lambda based custom resource to associate/disassociate approval rule with repos
+    const approvalRuleTemplateRepoAssociationProvider = new lambda.Function(this, `CodeCommitApprovalRuleTemplateRepoAssociation`, {
+      role: codeCommitApprovalRuleTemplateRole,
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(path.join(__dirname, '../assets/codecommit-repo-approval-rule')),
+      handler: 'codecommit.approvalRuleRepoAssociation',
+      timeout: cdk.Duration.minutes(5),
+    });
+
+    new cloudformation.CustomResource(this, 'CustomResource-CodeCommit-ApprovalRuleTemplate-Repos-Association', {
+      provider: cloudformation.CustomResourceProvider.lambda(approvalRuleTemplateRepoAssociationProvider),
+      resourceType: 'Custom::CodeCommitApprovalRuleTemplateReposAssociation',
+      properties: {
+        ApprovalRuleTemplateName: approvalRuleTemplaate.getAttString('approvalRuleTemplateName'),
+        RepositoryNames: [ 
+          repo1.repositoryName,
+          repo2.repositoryName,
+        ],
+      }
     });
 
     new cdk.CfnOutput(this, 'IAMUser:RepoAdmin', {

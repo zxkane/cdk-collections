@@ -338,7 +338,7 @@ export class CodecommitCollaborationModelStack extends cdk.Stack {
     const approvalRuleTemplateProvider = new lambda.Function(this, `CodeCommitApprovalRuleTemplate`, {
       role: codeCommitApprovalRuleTemplateRole,
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../assets/codecommit-approval-rule-template')),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../assets')),
       handler: 'codecommit.approvalRuleTemplate',
       timeout: cdk.Duration.minutes(5),
     });
@@ -372,7 +372,7 @@ export class CodecommitCollaborationModelStack extends cdk.Stack {
     const approvalRuleTemplateRepoAssociationProvider = new lambda.Function(this, `CodeCommitApprovalRuleTemplateRepoAssociation`, {
       role: codeCommitApprovalRuleTemplateRole,
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../assets/codecommit-repo-approval-rule')),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../assets')),
       handler: 'codecommit.approvalRuleRepoAssociation',
       timeout: cdk.Duration.minutes(5),
     });

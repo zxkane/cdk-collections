@@ -26,14 +26,11 @@ This project creates two CodeBuild projects for corresponding pull requests crea
   
 ### Deploy it!
 ```shell
-# build lambda code for cfn custom resource 'ApprovalRuleTemplate'
-cd assets/codecommit-approval-rule-template
-npm i && npm run build
-# build lambda code for cfn custom resource 'ApprovalRuleRepoAssociation'
-cd ../codecommit-repo-approval-rule
+# build lambda code for cfn custom resource 'ApprovalRuleTemplate' and 'ApprovalRuleRepoAssociation'
+cd assets
 npm i && npm run build
 # install dependencies
-cd ../../
+cd ../
 npm i
 
 ./node_modules/aws-cdk/bin/cdk deploy 

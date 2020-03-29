@@ -1,7 +1,7 @@
 {
-  "name": "codecommit-approval-rule-template",
+  "name": "codecommit-approval-rule",
   "version": "1.0.0",
-  "description": "A lambda fn creates approval rule template of CodeCommit.",
+  "description": "Lambda function create approval rule template of CodeCommit and associate it with repos.",
   "main": "codecommit.js",
   "scripts": {
     "build": "./node_modules/typescript/bin/tsc",

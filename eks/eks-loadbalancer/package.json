@@ -8,20 +8,24 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "init": "npm i && ./node_modules/aws-cdk/bin/cdk bootstrap",
+    "deploy": "./node_modules/aws-cdk/bin/cdk deploy",
+    "cleanup": "./node_modules/aws-cdk/bin/cdk destroy"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "^1.14.0",
-    "@types/jest": "^24.0.18",
-    "aws-cdk": "^1.14.0",
+    "@aws-cdk/assert": "^1.39.0",
+    "@types/jest": "^24.9.1",
+    "aws-cdk": "^1.39.0",
     "jest": "^24.9.0",
-    "ts-jest": "^24.0.2",
-    "ts-node": "^8.1.0",
-    "typescript": "~3.6.2"
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.6.5"
   },
   "dependencies": {
-    "@aws-cdk/aws-eks": "^1.14.0",
-    "@aws-cdk/core": "^1.14.0",
-    "source-map-support": "^0.5.9"
+    "@aws-cdk/aws-eks": "^1.39.0",
+    "@aws-cdk/core": "^1.39.0",
+    "@types/node": "^14.0.4",
+    "source-map-support": "^0.5.19"
   }
 }

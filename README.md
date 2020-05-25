@@ -14,3 +14,4 @@
 - [Signin callback page of Cognito App Client](cognito/userpool-appclient-callback/README.md)
 - [CodeCommit Collaboration Model](codecommit-collaboration-model/README.md)
 - [**Serverless Docker images analytics**](https://github.com/zxkane/serverless-docker-images-analytics):new:
+- [**Sonatype Nexus3 on EKS**](eks/sonatype-nexus3/README.md):new:

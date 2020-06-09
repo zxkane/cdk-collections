@@ -247,7 +247,8 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       'alb.ingress.kubernetes.io/auth-type': 'none',
       'alb.ingress.kubernetes.io/target-type': 'ip',
       'kubernetes.io/ingress.class': 'alb',
-      'alb.ingress.kubernetes.io/tags': 'app=nexus3'
+      'alb.ingress.kubernetes.io/tags': 'app=nexus3',
+      'alb.ingress.kubernetes.io/subnets': vpc.publicSubnets.map(subnet => subnet.subnetId).join(','),
     };
     var externalDNSResource : eks.KubernetesResource;
     if (certificate) {

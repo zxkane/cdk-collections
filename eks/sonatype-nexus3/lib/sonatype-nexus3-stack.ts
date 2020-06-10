@@ -42,6 +42,10 @@ export class SonatypeNexus3Stack extends cdk.Stack {
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
       isDefault: true
     });
+    if (this.azOfSubnets(vpc.publicSubnets) <= 1 || 
+      this.azOfSubnets(vpc.privateSubnets) <= 1) {
+        throw new Error(`VPC '${vpc.vpcId}' must have both public and private subnets cross two AZs at least.`);
+    }
 
     const clusterAdmin = new iam.Role(this, 'AdminRole', {
       assumedBy: new iam.AccountRootPrincipal()
@@ -450,5 +454,9 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       value: `${nexusBlobBucket.bucketName}`,
       description: 'S3 Bucket created for Nexus3 S3 Blobstore'
     });
+  }
+
+  private azOfSubnets(subnets: ec2.ISubnet[]) : number {
+    return new Set(subnets.map(subnet => subnet.availabilityZone)).size;
   }
 }

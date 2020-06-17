@@ -1,0 +1,82 @@
+{
+    "family": "{{&Family}}",
+    "taskRoleArn": "{{&TaskRoleARN}}",
+    "executionRoleArn": "{{&ExecutionRoleARN}}",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "{{&ContainerName}}",
+            "image": "sonatype/nexus3:3.24.0",
+            "cpu": 2048,
+            "memory": 4096,
+            "portMappings": [
+                {
+                    "containerPort": "{{&ContainerPort}}",
+                    "protocol": "tcp"
+                }
+            ],
+            "user": "root",
+            "essential": true,
+            "environment": [
+                {
+                    "name": "INSTALL4J_ADD_VM_PARAMS",
+                    "value": "-Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Djava.util.prefs.userRoot=${NEXUS_DATA}/javaprefs"
+                }
+            ],
+            "mountPoints": [
+                {
+                    "sourceVolume": "efsMount",
+                    "containerPath": "/nexus-data",
+                    "readOnly": false
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "{{&Region}}",
+                    "awslogs-group": "/ecs/nexus3",
+                    "awslogs-stream-prefix": "/nexus3",
+                    "awslogs-multiline-pattern": "^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2},\\d{3}"
+                }
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "if [ $(curl -LI http://localhost:8081/ -o /dev/null -w '%{http_code}\n' -s) != \"200\" ]; then exit 1; fi"
+                ],
+                "interval": 10,
+                "timeout": 5,
+                "retries": 6,
+                "startPeriod": 120
+            },
+            "ulimits": [
+                {
+                  "name": "nofile",
+                  "softLimit": 65536,
+                  "hardLimit": 65536
+                }
+            ]
+        }
+    ],
+    "volumes": [
+        {
+            "name": "efsMount",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "{{&FileSystemId}}",
+                "rootDirectory": "{{&FileSystemRootDirectory}}"
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "2048",
+    "memory": "6144",
+    "tags": [
+        {
+            "key": "usage",
+            "value": "Nexus3"
+        }
+    ]
+}

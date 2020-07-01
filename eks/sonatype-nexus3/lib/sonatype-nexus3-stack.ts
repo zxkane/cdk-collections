@@ -17,6 +17,8 @@ export class SonatypeNexus3Stack extends cdk.Stack {
     if (!domainName)
       throw new Error('Must specify the custom domain name.');
 
+    const stack = cdk.Stack.of(this);
+
     var hostedZone = null;
     var certificate = null;
     const r53Domain = this.node.tryGetContext('r53Domain');
@@ -33,11 +35,10 @@ export class SonatypeNexus3Stack extends cdk.Stack {
         validationDomains: {
           targetHost: domainName
         },
-        validationMethod: certmgr.ValidationMethod.DNS
+        validationMethod: certmgr.ValidationMethod.DNS,
+        route53Endpoint: stack.region.startsWith('cn-') ? 'route53.amazonaws.com.cn' : undefined,
       });
     }
-
-    const stack = cdk.Stack.of(this);
 
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
       isDefault: true
@@ -50,13 +51,15 @@ export class SonatypeNexus3Stack extends cdk.Stack {
     const clusterAdmin = new iam.Role(this, 'AdminRole', {
       assumedBy: new iam.AccountRootPrincipal()
     });
+
+    const isFargetEnabled = (this.node.tryGetContext('enableFarget') || 'false').toLowerCase() === 'true';
     const cluster = new eks.Cluster(this, 'MyK8SCluster', {
       vpc,
       defaultCapacity: 0,
       kubectlEnabled: true,
       mastersRole: clusterAdmin,
       version: '1.16',
-      coreDnsComputeType: eks.CoreDnsComputeType.EC2,
+      coreDnsComputeType: isFargetEnabled ? eks.CoreDnsComputeType.FARGATE : eks.CoreDnsComputeType.EC2,
     });
 
     const nexusBlobBucket = new s3.Bucket(this, `nexus3-blobstore`, {
@@ -103,6 +106,19 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       ]
     });
 
+    if (isFargetEnabled) {
+      cluster.addFargateProfile('FargetProfile', {
+        selectors: [ 
+          { 
+            namespace: 'kube-system',
+            labels: {
+              'k8s-app': 'kube-dns',
+            }
+          } 
+        ]
+      });
+    }
+    
     cluster.addNodegroup('nodegroup', {
       nodegroupName: 'nexus3',
       instanceType: new ec2.InstanceType('m5.large'),

@@ -308,8 +308,26 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       const externalDNSResources = yaml.safeLoadAll(
         request('GET', `${albBaseResourceBaseUrl}external-dns.yaml`)
           .getBody('utf-8').replace('external-dns-test.my-org.com', r53Domain)
+          .replace('0.7.1', '0.7.2') // pick external-dns 0.7.2 with Route53 fix in AWS China
           .replace('my-identifier', hostedZone!.hostedZoneId))
-          .filter((rbac: any) => { return rbac['kind'] != 'ServiceAccount' });
+          .filter((res: any) => { return res['kind'] != 'ServiceAccount' })
+          .map((res: any) => {
+            if (res['kind'] === 'ClusterRole') {
+              res['rules'].push({
+                apiGroups: [''],
+                resources: [ 'endpoints' ],
+                verbs: ["get","watch","list"]
+              });
+            } else if (res['kind'] === 'Deployment' && stack.region.startsWith('cn-')) {
+              res['spec']['template']['spec']['containers'][0]['env'] = [
+                {
+                  name: 'AWS_REGION',
+                  value: stack.region,
+                }
+              ];
+            }
+            return res;
+          });
 
       const externalDNS = cluster.addResource('external-dns', ...externalDNSResources);
       externalDNS.node.addDependency(externalDNSServiceAccount);
@@ -353,6 +371,8 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       namespace: nexus3Namespace,
       release: nexus3ChartName,
       version: nexus3ChartVersion,
+      wait: stack.region.startsWith('cn-') ? false : true,
+      timeout: stack.region.startsWith('cn-') ? undefined : cdk.Duration.minutes(15),
       values: {
         statefulset: {
           enabled: true,

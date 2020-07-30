@@ -11,7 +11,7 @@ Deploy Sonatype Nexus3 via Helm on EKS.
 
 ### Prerequisites
 - A public hosted zone in Route53(optional)
-- Has default VPC with public and private subnets cross two available zones at least
+- Has default VPC with public and private subnets cross two available zones at least, NAT gateway also is required
 - Install dependencies of app
 ```
 npm run init

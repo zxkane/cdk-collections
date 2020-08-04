@@ -20,7 +20,7 @@ export class SonatypeNexus3Stack extends cdk.Stack {
     const stack = cdk.Stack.of(this);
 
     var hostedZone = null;
-    var certificate = null;
+    var certificate: certmgr.Certificate | undefined;
     const r53Domain = this.node.tryGetContext('r53Domain');
     if (r53Domain) {
       hostedZone = route53.HostedZone.fromLookup(this, 'R53HostedZone', {
@@ -28,15 +28,9 @@ export class SonatypeNexus3Stack extends cdk.Stack {
         privateZone: false,
       });
       assert.ok(hostedZone != null, 'Can not find your hosted zone.');
-      certificate = new certmgr.DnsValidatedCertificate(this, 'Certificate-' + domainName, {
-        domainName,
-        hostedZone,
-        region: this.region,
-        validationDomains: {
-          targetHost: domainName
-        },
-        validationMethod: certmgr.ValidationMethod.DNS,
-        route53Endpoint: stack.region.startsWith('cn-') ? 'route53.amazonaws.com.cn' : undefined,
+      certificate = new certmgr.Certificate(this, `Certificate-${domainName}`, {
+        domainName: domainName,
+        validation: certmgr.CertificateValidation.fromDns(hostedZone),
       });
     }
 
@@ -58,7 +52,7 @@ export class SonatypeNexus3Stack extends cdk.Stack {
       defaultCapacity: 0,
       kubectlEnabled: true,
       mastersRole: clusterAdmin,
-      version: '1.16',
+      version: eks.KubernetesVersion.V1_17,
       coreDnsComputeType: isFargetEnabled ? eks.CoreDnsComputeType.FARGATE : eks.CoreDnsComputeType.EC2,
     });
 

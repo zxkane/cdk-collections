@@ -16,3 +16,6 @@
 - [**Serverless Docker images analytics**](https://github.com/zxkane/serverless-docker-images-analytics):new:
 - [**Sonatype Nexus repository OSS on EKS**](eks/sonatype-nexus3/README.md):new:
 - [Sonatype Nexus repository OSS on ECS](ecs-sonatype-nexus3/README.md)
+
+# CDK construct
+- [Simple NAT](https://github.com/zxkane/snat) creates purpose built NAT instances.

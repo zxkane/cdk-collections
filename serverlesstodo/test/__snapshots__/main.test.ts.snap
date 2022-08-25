@@ -1,0 +1,915 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot 1`] = `
+Object {
+  "Outputs": Object {
+    "TODOAPI": Object {
+      "Description": "url of TODO endpoint",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "todoappbackendapi8D2202DC",
+            },
+            ".execute-api.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            Object {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            Object {
+              "Ref": "todoappbackendapiDeploymentStageprod7F1D5431",
+            },
+            "/todo",
+          ],
+        ],
+      },
+    },
+    "todoappbackendapiEndpoint8BBE7B48": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "todoappbackendapi8D2202DC",
+            },
+            ".execute-api.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            Object {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            Object {
+              "Ref": "todoappbackendapiDeploymentStageprod7F1D5431",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+  },
+  "Parameters": Object {
+    "BootstrapVersion": Object {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": Object {
+    "RequestValidatorB6FDBF18": Object {
+      "Properties": Object {
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+        "ValidateRequestBody": true,
+        "ValidateRequestParameters": true,
+      },
+      "Type": "AWS::ApiGateway::RequestValidator",
+    },
+    "TODOTable8589412C": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "id",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "ContributorInsightsSpecification": Object {
+          "Enabled": true,
+        },
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "id",
+            "KeyType": "HASH",
+          },
+        ],
+        "PointInTimeRecoverySpecification": Object {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": Object {
+          "SSEEnabled": true,
+        },
+        "StreamSpecification": Object {
+          "StreamViewType": "NEW_AND_OLD_IMAGES",
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "apigatewayroleE6D48DBD": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "dynamodb:UpdateItem",
+                    "dynamodb:Scan",
+                    "dynamodb:DeleteItem",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::GetAtt": Array [
+                      "TODOTable8589412C",
+                      "Arn",
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "table",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "todoappaccesslogs17D6476B": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "RetentionInDays": 30,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "todoappbackendapi8D2202DC": Object {
+      "Properties": Object {
+        "Name": "todo-app-backend-api",
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "todoappbackendapiAccountCD5BA139": Object {
+      "DeletionPolicy": "Retain",
+      "DependsOn": Array [
+        "todoappbackendapi8D2202DC",
+      ],
+      "Properties": Object {
+        "CloudWatchRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "todoappbackendapiCloudWatchRole367FAC02",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "todoappbackendapiCloudWatchRole367FAC02": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "todoappbackendapiDeployment0F74DA5677ac922f4265c36bcdf9473d76d3528d": Object {
+      "DependsOn": Array [
+        "RequestValidatorB6FDBF18",
+        "todoappbackendapitodotodoIdDELETE0F39924D",
+        "todoappbackendapitodotodoIdPOST275E728C",
+        "todoappbackendapitodotodoId35AD3DC0",
+        "todoappbackendapitodoGET50F454FD",
+        "todoappbackendapitodoPUT3C8BE992",
+        "todoappbackendapitodo214A50F3",
+        "todoappbackendapitodomodel8B506559",
+      ],
+      "Properties": Object {
+        "Description": "Automatically created by the RestApi construct",
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "todoappbackendapiDeploymentStageprod7F1D5431": Object {
+      "DependsOn": Array [
+        "todoappbackendapiAccountCD5BA139",
+      ],
+      "Properties": Object {
+        "AccessLogSetting": Object {
+          "DestinationArn": Object {
+            "Fn::GetAtt": Array [
+              "todoappaccesslogs17D6476B",
+              "Arn",
+            ],
+          },
+          "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"ip\\":\\"$context.identity.sourceIp\\",\\"user\\":\\"$context.identity.user\\",\\"caller\\":\\"$context.identity.caller\\",\\"requestTime\\":\\"$context.requestTime\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"resourcePath\\":\\"$context.resourcePath\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\"}",
+        },
+        "DeploymentId": Object {
+          "Ref": "todoappbackendapiDeployment0F74DA5677ac922f4265c36bcdf9473d76d3528d",
+        },
+        "MethodSettings": Array [
+          Object {
+            "DataTraceEnabled": true,
+            "HttpMethod": "*",
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ResourcePath": "/*",
+          },
+        ],
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+        "StageName": "prod",
+        "TracingEnabled": true,
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "todoappbackendapitodo214A50F3": Object {
+      "Properties": Object {
+        "ParentId": Object {
+          "Fn::GetAtt": Array [
+            "todoappbackendapi8D2202DC",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "todo",
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "todoappbackendapitodoGET50F454FD": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "GET",
+        "Integration": Object {
+          "Credentials": Object {
+            "Fn::GetAtt": Array [
+              "apigatewayroleE6D48DBD",
+              "Arn",
+            ],
+          },
+          "IntegrationHttpMethod": "POST",
+          "IntegrationResponses": Array [
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "#set($inputRoot = $input.path('$'))
+[
+  #foreach($item in $inputRoot.Items)
+  {
+    \\"id\\": \\"$item.id.S\\",
+    \\"subject\\": \\"$util.escapeJavaScript($item.subject.S)\\",
+    \\"description\\": \\"$util.escapeJavaScript($item.description.S)\\",
+    \\"dueDate\\": $item.dueDate.N,
+    \\"createdTimeInMills\\": $item.createdTimeInMills.N
+    #if(\\"$!item.lastModifiedTimeInMills.N\\" != \\"\\")
+    ,
+    \\"lastModifiedTimeInMills\\": $item.lastModifiedTimeInMills.N
+    #end
+  }
+  #if($foreach.hasNext),#end
+  #end
+]
+",
+              },
+              "StatusCode": "200",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "text/html": "Error",
+              },
+              "SelectionPattern": "500",
+              "StatusCode": "500",
+            },
+          ],
+          "RequestParameters": Object {
+            "integration.request.header.Content-Type": "'application/json'",
+          },
+          "RequestTemplates": Object {
+            "application/json": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{
+  \\"TableName\\": \\"",
+                  Object {
+                    "Ref": "TODOTable8589412C",
+                  },
+                  "\\",
+  \\"ProjectionExpression\\": \\"id, subject, description, dueDate, createdTimeInMills, lastModifiedTimeInMills\\",
+  \\"FilterExpression\\": \\"begins_with(id, :id)\\",
+  \\"ExpressionAttributeValues\\": {
+      \\":id\\": {\\"S\\": \\"todo-\\"}
+  }
+}
+",
+                ],
+              ],
+            },
+          },
+          "Type": "AWS",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":dynamodb:action/Scan",
+              ],
+            ],
+          },
+        },
+        "MethodResponses": Array [
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "200",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "400",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "404",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "500",
+          },
+        ],
+        "OperationName": "Get TODOs",
+        "RequestParameters": Object {
+          "method.request.header.content-type": true,
+        },
+        "RequestValidatorId": Object {
+          "Ref": "RequestValidatorB6FDBF18",
+        },
+        "ResourceId": Object {
+          "Ref": "todoappbackendapitodo214A50F3",
+        },
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "todoappbackendapitodoPUT3C8BE992": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "PUT",
+        "Integration": Object {
+          "Credentials": Object {
+            "Fn::GetAtt": Array [
+              "apigatewayroleE6D48DBD",
+              "Arn",
+            ],
+          },
+          "IntegrationHttpMethod": "POST",
+          "IntegrationResponses": Array [
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "{
+  \\"subject\\": \\"$util.escapeJavaScript($input.path('$.Attributes.subject.S')).replaceAll(\\"\\\\\\\\'\\",\\"'\\")\\",
+  \\"description\\": \\"$util.escapeJavaScript($input.path('$.Attributes.description.S')).replaceAll(\\"\\\\\\\\'\\",\\"'\\")\\",
+  \\"id\\": \\"$input.path('$.Attributes.id.S')\\",
+  \\"createdTimeInMills\\": $input.path('$.Attributes.createdTimeInMills.N'),
+  \\"dueDate\\": $input.path('$.Attributes.dueDate.N')
+}
+",
+              },
+              "StatusCode": "200",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "#if($input.path('$.__type') == \\"com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException\\")
+{
+  \\"message\\": \\"the todo id already exists.\\"
+}
+#end",
+              },
+              "SelectionPattern": "4\\\\d{2}",
+              "StatusCode": "400",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "text/html": "Error",
+              },
+              "SelectionPattern": "500",
+              "StatusCode": "500",
+            },
+          ],
+          "RequestParameters": Object {
+            "integration.request.header.Content-Type": "'application/json'",
+          },
+          "RequestTemplates": Object {
+            "application/json": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "#set($dueDate = $input.path('$.dueDate'))
+#set($subject = \\"$util.escapeJavaScript($input.path('$.subject'))\\")
+#set($description = \\"$util.escapeJavaScript($input.path('$.description'))\\")
+{
+  \\"TableName\\": \\"",
+                  Object {
+                    "Ref": "TODOTable8589412C",
+                  },
+                  "\\",
+  \\"Key\\": {
+    \\"id\\": {
+        \\"S\\": \\"todo-$context.requestId\\"
+      }
+  },
+  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, createdTimeInMills = :ct\\",
+  \\"ExpressionAttributeValues\\": {
+      \\":s\\": {
+        \\"S\\": \\"$subject\\"
+      },
+      \\":d\\": {
+        \\"S\\": \\"$description\\"
+      },
+      \\":dd\\": {
+        \\"N\\": \\"$dueDate\\"
+      },
+      \\":ct\\": {
+        \\"N\\": \\"$context.requestTimeEpoch\\"
+      }
+  },
+  \\"ConditionExpression\\": \\"attribute_not_exists(id)\\",
+  \\"ReturnValues\\": \\"ALL_NEW\\"
+}
+",
+                ],
+              ],
+            },
+          },
+          "Type": "AWS",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":dynamodb:action/UpdateItem",
+              ],
+            ],
+          },
+        },
+        "MethodResponses": Array [
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "200",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "400",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "404",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "500",
+          },
+        ],
+        "OperationName": "Create TODO item",
+        "RequestModels": Object {
+          "application/json": Object {
+            "Ref": "todoappbackendapitodomodel8B506559",
+          },
+        },
+        "RequestParameters": Object {
+          "method.request.header.content-type": true,
+        },
+        "RequestValidatorId": Object {
+          "Ref": "RequestValidatorB6FDBF18",
+        },
+        "ResourceId": Object {
+          "Ref": "todoappbackendapitodo214A50F3",
+        },
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "todoappbackendapitodomodel8B506559": Object {
+      "Properties": Object {
+        "ContentType": "application/json",
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+        "Schema": Object {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "properties": Object {
+            "description": Object {
+              "type": "string",
+            },
+            "dueDate": Object {
+              "type": "number",
+            },
+            "subject": Object {
+              "type": "string",
+            },
+          },
+          "required": Array [
+            "subject",
+            "description",
+            "dueDate",
+          ],
+          "type": "object",
+        },
+      },
+      "Type": "AWS::ApiGateway::Model",
+    },
+    "todoappbackendapitodotodoId35AD3DC0": Object {
+      "Properties": Object {
+        "ParentId": Object {
+          "Ref": "todoappbackendapitodo214A50F3",
+        },
+        "PathPart": "{todoId}",
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "todoappbackendapitodotodoIdDELETE0F39924D": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "DELETE",
+        "Integration": Object {
+          "Credentials": Object {
+            "Fn::GetAtt": Array [
+              "apigatewayroleE6D48DBD",
+              "Arn",
+            ],
+          },
+          "IntegrationHttpMethod": "POST",
+          "IntegrationResponses": Array [
+            Object {
+              "SelectionPattern": "200",
+              "StatusCode": "200",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "#if($input.path('$.__type') == \\"com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException\\")
+{
+  \\"message\\": \\"the TODO item does not exist or is not owned by you.\\"
+}
+#end",
+              },
+              "SelectionPattern": "400",
+              "StatusCode": "400",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "text/html": "Error",
+              },
+              "SelectionPattern": "500",
+              "StatusCode": "500",
+            },
+          ],
+          "RequestParameters": Object {
+            "integration.request.header.Content-Type": "'application/json'",
+          },
+          "RequestTemplates": Object {
+            "application/json": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "#set($todoId = \\"$util.escapeJavaScript($input.params('todoId'))\\")  
+{
+  \\"TableName\\": \\"",
+                  Object {
+                    "Ref": "TODOTable8589412C",
+                  },
+                  "\\",
+  \\"Key\\": {
+    \\"id\\": {
+        \\"S\\": \\"todo-$todoId\\"
+      }
+  }
+}
+",
+                ],
+              ],
+            },
+          },
+          "Type": "AWS",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":dynamodb:action/DeleteItem",
+              ],
+            ],
+          },
+        },
+        "MethodResponses": Array [
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "200",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "400",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "404",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "500",
+          },
+        ],
+        "OperationName": "Delete a TODO item",
+        "RequestParameters": Object {
+          "method.request.header.content-type": true,
+        },
+        "RequestValidatorId": Object {
+          "Ref": "RequestValidatorB6FDBF18",
+        },
+        "ResourceId": Object {
+          "Ref": "todoappbackendapitodotodoId35AD3DC0",
+        },
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "todoappbackendapitodotodoIdPOST275E728C": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
+        "Integration": Object {
+          "Credentials": Object {
+            "Fn::GetAtt": Array [
+              "apigatewayroleE6D48DBD",
+              "Arn",
+            ],
+          },
+          "IntegrationHttpMethod": "POST",
+          "IntegrationResponses": Array [
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "{
+  \\"subject\\": \\"$util.escapeJavaScript($input.path('$.Attributes.subject.S'))\\",
+  \\"id\\": \\"$input.path('$.Attributes.id.S')\\",
+  \\"description\\": \\"$util.escapeJavaScript($input.path('$.Attributes.description.S'))\\",
+  \\"dueDate\\": $input.path('$.Attributes.dueDate.N')\\",
+  \\"createdTimeInMills\\": $input.path('$.Attributes.createdTimeInMills.N'),
+  \\"lastModifiedTimeInMills\\": $input.path('$.Attributes.lastModifiedTimeInMills.N'),  
+}
+",
+              },
+              "StatusCode": "200",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "application/json": "#if($input.path('$.__type') == \\"com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException\\")
+{
+  \\"message\\": \\"the TODO does NOT exists.\\"
+}
+#end",
+              },
+              "SelectionPattern": "4\\\\d{2}",
+              "StatusCode": "400",
+            },
+            Object {
+              "ResponseTemplates": Object {
+                "text/html": "Error",
+              },
+              "SelectionPattern": "500",
+              "StatusCode": "500",
+            },
+          ],
+          "RequestParameters": Object {
+            "integration.request.header.Content-Type": "'application/json'",
+          },
+          "RequestTemplates": Object {
+            "application/json": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "#set($dueDate = $input.path('$.dueDate'))
+#set($subject = \\"$util.escapeJavaScript($input.path('$.subject'))\\")
+#set($description = \\"$util.escapeJavaScript($input.path('$.description'))\\")
+#set($todoId = \\"$util.escapeJavaScript($input.params('todoId'))\\")  
+{
+  \\"TableName\\": \\"",
+                  Object {
+                    "Ref": "TODOTable8589412C",
+                  },
+                  "\\",
+  \\"Key\\": {
+    \\"id\\": {
+        \\"S\\": \\"todo-$todoId\\"
+      }
+  },
+  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, lastModifiedTimeInMills = :ct\\",
+  \\"ExpressionAttributeValues\\": {
+      \\":s\\": {
+        \\"S\\": \\"$subject\\"
+      },
+      \\":d\\": {
+        \\"S\\": \\"$description\\"
+      },
+      \\":dd\\": {
+        \\"N\\": \\"$dueDate\\"
+      },
+      \\":ct\\": {
+        \\"N\\": \\"$context.requestTimeEpoch\\"
+      }
+  },
+  \\"ConditionExpression\\": \\"attribute_exists(id)\\",
+  \\"ReturnValues\\": \\"ALL_NEW\\"
+}
+",
+                ],
+              ],
+            },
+          },
+          "Type": "AWS",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":dynamodb:action/UpdateItem",
+              ],
+            ],
+          },
+        },
+        "MethodResponses": Array [
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "200",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "400",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "404",
+          },
+          Object {
+            "ResponseParameters": Object {
+              "method.response.header.Content-Type": true,
+            },
+            "StatusCode": "500",
+          },
+        ],
+        "OperationName": "Update TODO item",
+        "RequestModels": Object {
+          "application/json": Object {
+            "Ref": "todoappbackendapitodomodel8B506559",
+          },
+        },
+        "RequestParameters": Object {
+          "method.request.header.content-type": true,
+        },
+        "RequestValidatorId": Object {
+          "Ref": "RequestValidatorB6FDBF18",
+        },
+        "ResourceId": Object {
+          "Ref": "todoappbackendapitodotodoId35AD3DC0",
+        },
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+  },
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  Object {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

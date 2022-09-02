@@ -15,6 +15,11 @@
 yarn install --check-files --frozen-lockfile
 npx projen
 ```
+1. build frontend project
+```bash
+npm i --prefix frontend
+npm run build --prefix frontend
+```
 1. deploy 
 ```bash
 npx cdk deploy

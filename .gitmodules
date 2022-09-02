@@ -1,0 +1,3 @@
+[submodule "serverlesstodo/frontend"]
+	path = serverlesstodo/frontend
+	url = https://github.com/zxkane/react-todolist.git

@@ -1,9 +1,14 @@
-import { App, Stack, StackProps, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
+import * as path from 'path';
+import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
+import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration } from 'aws-cdk-lib';
 import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model } from 'aws-cdk-lib/aws-apigateway';
 import { Table, AttributeType, TableEncryption, BillingMode, StreamViewType, ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { ServicePrincipal, Role, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
+import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { BucketDeployment, Source, CacheControl, StorageClass } from 'aws-cdk-lib/aws-s3-deployment';
 
 export class TODOStack extends Stack {
   readonly gatewayRole: Role;
@@ -63,6 +68,52 @@ export class TODOStack extends Stack {
       validateRequestParameters: true,
     });
     this.createToDoAPI(api, todoTable, requestValidator);
+    
+    const cloudFrontS3 = new CloudFrontToS3(this, 'control-plane', {
+      insertHttpSecurityHeaders: false,
+      cloudFrontDistributionProps: {
+        comment: 'It is managed by ServerlessTODO app.',
+        minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2019,
+        httpVersion: HttpVersion.HTTP2_AND_3,
+        additionalBehaviors: {
+          ['/prod/*']: {
+            origin: new HttpOrigin(Fn.select(2, Fn.split('/', api.url)), {
+              protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+            }),
+            viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            cachePolicy: new CachePolicy(this, 'customCachePolicy', {
+              defaultTtl: Duration.seconds(0),
+              minTtl: Duration.seconds(0),
+              maxTtl: Duration.seconds(1),
+              enableAcceptEncodingGzip: true,
+              enableAcceptEncodingBrotli: true,
+              headerBehavior: CacheHeaderBehavior.allowList('authorization'),
+            }),
+            allowedMethods: AllowedMethods.ALLOW_ALL,
+          },
+        },
+      },
+    });
+    new BucketDeployment(this, 'DeployWebsite', {
+      sources: [
+        Source.asset(path.join(__dirname, '../frontend/dist/'), {
+          exclude: [],
+        }),
+      ],
+      destinationBucket: cloudFrontS3.s3Bucket!,
+      destinationKeyPrefix: '/',
+      prune: false,
+      retainOnDelete: false,
+      cacheControl: [CacheControl.maxAge(Duration.days(7))],
+      storageClass: StorageClass.INTELLIGENT_TIERING,
+      distribution: cloudFrontS3.cloudFrontWebDistribution,
+      distributionPaths: ['/index.html',],
+    });
+    
+    new CfnOutput(this, 'TODOAppUrl', {
+      value: `https://${cloudFrontS3.cloudFrontWebDistribution.distributionDomainName}`,
+      description: 'url of TODO app',
+    });    
   }
 
   private createToDoAPI(api: RestApi, table: ITable, requestValidator: RequestValidator): void {
@@ -83,7 +134,7 @@ export class TODOStack extends Stack {
             type: JsonSchemaType.NUMBER,
           },
         },
-        required: ['subject', 'description', 'dueDate'],
+        required: ['subject', 'description'],
       },
     });
     const todoAPI = api.root.addResource(todoResourceName, {
@@ -107,6 +158,7 @@ export class TODOStack extends Stack {
   "subject": "$util.escapeJavaScript($input.path('$.Attributes.subject.S')).replaceAll(\"\\\\'\",\"'\")",
   "description": "$util.escapeJavaScript($input.path('$.Attributes.description.S')).replaceAll(\"\\\\'\",\"'\")",
   "id": "$input.path('$.Attributes.id.S')",
+  "isCompleted": $input.path('$.Attributes.isCompleted.BOOL'),
   "createdTimeInMills": $input.path('$.Attributes.createdTimeInMills.N'),
   "dueDate": $input.path('$.Attributes.dueDate.N')
 }
@@ -134,6 +186,9 @@ export class TODOStack extends Stack {
         ],
         requestTemplates: {
           'application/json': `#set($dueDate = $input.path('$.dueDate'))
+#if($!dueDate)
+#set($dueDate = -1)
+#end
 #set($subject = "$util.escapeJavaScript($input.path('$.subject'))")
 #set($description = "$util.escapeJavaScript($input.path('$.description'))")
 {
@@ -143,7 +198,7 @@ export class TODOStack extends Stack {
         "S": "todo-$context.requestId"
       }
   },
-  "UpdateExpression": "set subject = :s, description = :d, dueDate = :dd, createdTimeInMills = :ct",
+  "UpdateExpression": "set subject = :s, description = :d, dueDate = :dd, createdTimeInMills = :ct, isCompleted = :ic",
   "ExpressionAttributeValues": {
       ":s": {
         "S": "$subject"
@@ -156,6 +211,9 @@ export class TODOStack extends Stack {
       },
       ":ct": {
         "N": "$context.requestTimeEpoch"
+      },
+      ":ic": {
+        "BOOL": "False"
       }
   },
   "ConditionExpression": "attribute_not_exists(id)",
@@ -187,6 +245,7 @@ export class TODOStack extends Stack {
   "id": "$input.path('$.Attributes.id.S')",
   "description": "$util.escapeJavaScript($input.path('$.Attributes.description.S'))",
   "dueDate": $input.path('$.Attributes.dueDate.N')",
+  "isCompleted": $input.path('$.Attributes.isCompleted.BOOL'),
   "createdTimeInMills": $input.path('$.Attributes.createdTimeInMills.N'),
   "lastModifiedTimeInMills": $input.path('$.Attributes.lastModifiedTimeInMills.N'),  
 }
@@ -214,9 +273,13 @@ export class TODOStack extends Stack {
         ],
         requestTemplates: {
           'application/json': `#set($dueDate = $input.path('$.dueDate'))
+#if($!dueDate)
+#set($dueDate = -1)
+#end          
 #set($subject = "$util.escapeJavaScript($input.path('$.subject'))")
 #set($description = "$util.escapeJavaScript($input.path('$.description'))")
 #set($todoId = "$util.escapeJavaScript($input.params('todoId'))")  
+#set($isCompleted = "$input.path('$.isCompleted')")
 {
   "TableName": "${table.tableName}",
   "Key": {
@@ -224,7 +287,7 @@ export class TODOStack extends Stack {
         "S": "todo-$todoId"
       }
   },
-  "UpdateExpression": "set subject = :s, description = :d, dueDate = :dd, lastModifiedTimeInMills = :ct",
+  "UpdateExpression": "set subject = :s, description = :d, dueDate = :dd, lastModifiedTimeInMills = :ct, isCompleted = :ic",
   "ExpressionAttributeValues": {
       ":s": {
         "S": "$subject"
@@ -237,7 +300,10 @@ export class TODOStack extends Stack {
       },
       ":ct": {
         "N": "$context.requestTimeEpoch"
-      }
+      },
+      ":ic": {
+        "BOOL": "$isCompleted"
+      }      
   },
   "ConditionExpression": "attribute_exists(id)",
   "ReturnValues": "ALL_NEW"
@@ -318,6 +384,7 @@ export class TODOStack extends Stack {
     "subject": "$util.escapeJavaScript($item.subject.S)",
     "description": "$util.escapeJavaScript($item.description.S)",
     "dueDate": $item.dueDate.N,
+    "isCompleted": $item.isCompleted.BOOL,
     "createdTimeInMills": $item.createdTimeInMills.N
     #if("$!item.lastModifiedTimeInMills.N" != "")
     ,
@@ -341,7 +408,7 @@ export class TODOStack extends Stack {
         requestTemplates: {
           'application/json': `{
   "TableName": "${table.tableName}",
-  "ProjectionExpression": "id, subject, description, dueDate, createdTimeInMills, lastModifiedTimeInMills",
+  "ProjectionExpression": "id, subject, description, dueDate, createdTimeInMills, lastModifiedTimeInMills, isCompleted",
   "FilterExpression": "begins_with(id, :id)",
   "ExpressionAttributeValues": {
       ":id": {"S": "todo-"}

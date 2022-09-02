@@ -80,6 +80,10 @@
       "type": "build"
     },
     {
+      "name": "@aws-solutions-constructs/aws-cloudfront-s3",
+      "type": "runtime"
+    },
+    {
       "name": "aws-cdk-lib",
       "version": "^2.1.0",
       "type": "runtime"

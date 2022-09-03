@@ -5,8 +5,8 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   name: 'serverlesstodo',
 
   deps: [
-    '@aws-solutions-constructs/aws-cloudfront-s3',  
-  ],                /* Runtime dependencies of this module. */
+    '@aws-solutions-constructs/aws-cloudfront-s3',
+  ], /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],             /* Build dependencies for this module. */
   // packageName: undefined,  /* The "name" in package.json. */

@@ -30,6 +30,23 @@ Object {
         ],
       },
     },
+    "TODOAppUrl": Object {
+      "Description": "url of TODO app",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Fn::GetAtt": Array [
+                "controlplaneCloudFrontDistributionBB89BCF1",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
     "todoappbackendapiEndpoint8BBE7B48": Object {
       "Value": Object {
         "Fn::Join": Array [
@@ -65,6 +82,402 @@ Object {
     },
   },
   "Resources": Object {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": Object {
+      "DependsOn": Array [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6dbd112fe448437b3438da4382c72fccbb7d2ee1543db222620d7447fffebc50.zip",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CreateAwsExports353D691F": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "CreateAwsExportsCustomResourcePolicyE986A674",
+      ],
+      "Properties": Object {
+        "Create": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"S3\\",\\"action\\":\\"putObject\\",\\"parameters\\":{\\"Body\\":\\"{\\\\n  \\\\\\"aws_project_region\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "\\\\\\",\\\\n  \\\\\\"Auth\\\\\\": {\\\\n    \\\\\\"region\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "\\\\\\",\\\\n    \\\\\\"userPoolId\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "TODOUserPoolB2242677",
+              },
+              "\\\\\\",\\\\n    \\\\\\"userPoolWebClientId\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "userpoolclientDA356A8E",
+              },
+              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\"\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "/prod/\\\\\\"\\\\n      }\\\\n    ]\\\\n  }\\\\n}\\",\\"Bucket\\":\\"",
+              Object {
+                "Ref": "controlplaneS3Bucket2CBB3164",
+              },
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"responsePath\\":\\"ETag\\"}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"S3\\",\\"action\\":\\"putObject\\",\\"parameters\\":{\\"Body\\":\\"{\\\\n  \\\\\\"aws_project_region\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "\\\\\\",\\\\n  \\\\\\"Auth\\\\\\": {\\\\n    \\\\\\"region\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              "\\\\\\",\\\\n    \\\\\\"userPoolId\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "TODOUserPoolB2242677",
+              },
+              "\\\\\\",\\\\n    \\\\\\"userPoolWebClientId\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "userpoolclientDA356A8E",
+              },
+              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\"\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "/prod/\\\\\\"\\\\n      }\\\\n    ]\\\\n  }\\\\n}\\",\\"Bucket\\":\\"",
+              Object {
+                "Ref": "controlplaneS3Bucket2CBB3164",
+              },
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"responsePath\\":\\"ETag\\"}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CreateAwsExportsCustomResourcePolicyE986A674": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:PutObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "controlplaneS3Bucket2CBB3164",
+                        "Arn",
+                      ],
+                    },
+                    "/aws-exports.json",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CreateAwsExportsCustomResourcePolicyE986A674",
+        "Roles": Array [
+          Object {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": Object {
+      "DependsOn": Array [
+        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "f98b78092dcdd31f5e6d47489beb5f804d4835ef86a8085d0a2053cb9ae711da.zip",
+        },
+        "Handler": "index.handler",
+        "Layers": Array [
+          Object {
+            "Ref": "DeployWebsiteAwsCliLayer17DBC421",
+          },
+        ],
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.9",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+                      },
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "controlplaneS3Bucket2CBB3164",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "controlplaneS3Bucket2CBB3164",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "cloudfront:GetInvalidation",
+                "cloudfront:CreateInvalidation",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+        "Roles": Array [
+          Object {
+            "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DeployWebsiteAwsCliLayer17DBC421": Object {
+      "DependsOn": Array [
+        "CreateAwsExportsCustomResourcePolicyE986A674",
+        "CreateAwsExports353D691F",
+      ],
+      "Properties": Object {
+        "Content": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "731f24951dbe4e08bfc519dd7c23a4f7158528bd5557e38437b08292ab2a873c.zip",
+        },
+        "Description": "/opt/awscli/aws",
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+    },
+    "DeployWebsiteCustomResourceD116527B": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "CreateAwsExportsCustomResourcePolicyE986A674",
+        "CreateAwsExports353D691F",
+      ],
+      "Properties": Object {
+        "DestinationBucketKeyPrefix": "/",
+        "DestinationBucketName": Object {
+          "Ref": "controlplaneS3Bucket2CBB3164",
+        },
+        "DistributionId": Object {
+          "Ref": "controlplaneCloudFrontDistributionBB89BCF1",
+        },
+        "DistributionPaths": Array [
+          "/index.html",
+          "/aws-exports.json",
+          "/b28c94b2195c8ed259f0b415aaee3f39b0b2920a4537611499fa044956917a21",
+        ],
+        "Prune": false,
+        "RetainOnDelete": false,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+            "Arn",
+          ],
+        },
+        "SourceBucketNames": Array [
+          Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+        ],
+        "SourceObjectKeys": Array [
+          "e64f46d7953cd0483e513e858606fe768f23af34dc1c0b50483965e55634f6a0.zip",
+        ],
+        "SystemMetadata": Object {
+          "cache-control": "max-age=604800",
+          "storage-class": "INTELLIGENT_TIERING",
+        },
+      },
+      "Type": "Custom::CDKBucketDeployment",
+      "UpdateReplacePolicy": "Delete",
+    },
     "RequestValidatorB6FDBF18": Object {
       "Properties": Object {
         "RestApiId": Object {
@@ -107,6 +520,61 @@ Object {
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
+    "TODOUserPoolB2242677": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "AccountRecoverySetting": Object {
+          "RecoveryMechanisms": Array [
+            Object {
+              "Name": "verified_email",
+              "Priority": 1,
+            },
+          ],
+        },
+        "AdminCreateUserConfig": Object {
+          "AllowAdminCreateUserOnly": false,
+        },
+        "AutoVerifiedAttributes": Array [
+          "email",
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "Policies": Object {
+          "PasswordPolicy": Object {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true,
+            "TemporaryPasswordValidityDays": 3,
+          },
+        },
+        "Schema": Array [
+          Object {
+            "Mutable": false,
+            "Name": "email",
+            "Required": true,
+          },
+        ],
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UserAttributeUpdateSettings": Object {
+          "AttributesRequireVerificationBeforeUpdate": Array [
+            "email",
+          ],
+        },
+        "UsernameAttributes": Array [
+          "email",
+        ],
+        "VerificationMessageTemplate": Object {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}",
+        },
+      },
+      "Type": "AWS::Cognito::UserPool",
+      "UpdateReplacePolicy": "Delete",
+    },
     "apigatewayroleE6D48DBD": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
@@ -147,6 +615,491 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "controlplaneCloudFrontDistributionBB89BCF1": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W70",
+              "reason": "Since the distribution uses the CloudFront domain name, CloudFront automatically sets the security policy to TLSv1 regardless of the value of MinimumProtocolVersion",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "DistributionConfig": Object {
+          "CacheBehaviors": Array [
+            Object {
+              "AllowedMethods": Array [
+                "GET",
+                "HEAD",
+                "OPTIONS",
+                "PUT",
+                "PATCH",
+                "POST",
+                "DELETE",
+              ],
+              "CachePolicyId": Object {
+                "Ref": "customCachePolicy710E759B",
+              },
+              "Compress": true,
+              "PathPattern": "/prod/*",
+              "TargetOriginId": "testcontrolplaneCloudFrontDistributionOrigin2B33D7CA8",
+              "ViewerProtocolPolicy": "redirect-to-https",
+            },
+          ],
+          "Comment": "It is managed by ServerlessTODO app.",
+          "DefaultCacheBehavior": Object {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "testcontrolplaneCloudFrontDistributionOrigin14458A8E7",
+            "ViewerProtocolPolicy": "redirect-to-https",
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": true,
+          "Logging": Object {
+            "Bucket": Object {
+              "Fn::GetAtt": Array [
+                "controlplaneCloudfrontLoggingBucket7CE6BDBA",
+                "RegionalDomainName",
+              ],
+            },
+          },
+          "Origins": Array [
+            Object {
+              "DomainName": Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneS3Bucket2CBB3164",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "testcontrolplaneCloudFrontDistributionOrigin14458A8E7",
+              "S3OriginConfig": Object {
+                "OriginAccessIdentity": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "origin-access-identity/cloudfront/",
+                      Object {
+                        "Ref": "controlplaneCloudFrontDistributionOrigin1S3OriginE9820082",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+            Object {
+              "CustomOriginConfig": Object {
+                "OriginProtocolPolicy": "https-only",
+                "OriginSSLProtocols": Array [
+                  "TLSv1.2",
+                ],
+              },
+              "DomainName": Object {
+                "Fn::Select": Array [
+                  2,
+                  Object {
+                    "Fn::Split": Array [
+                      "/",
+                      Object {
+                        "Fn::Join": Array [
+                          "",
+                          Array [
+                            "https://",
+                            Object {
+                              "Ref": "todoappbackendapi8D2202DC",
+                            },
+                            ".execute-api.",
+                            Object {
+                              "Ref": "AWS::Region",
+                            },
+                            ".",
+                            Object {
+                              "Ref": "AWS::URLSuffix",
+                            },
+                            "/",
+                            Object {
+                              "Ref": "todoappbackendapiDeploymentStageprod7F1D5431",
+                            },
+                            "/",
+                          ],
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              "Id": "testcontrolplaneCloudFrontDistributionOrigin2B33D7CA8",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "controlplaneCloudFrontDistributionOrigin1S3OriginE9820082": Object {
+      "Properties": Object {
+        "CloudFrontOriginAccessIdentityConfig": Object {
+          "Comment": "Identity for testcontrolplaneCloudFrontDistributionOrigin14458A8E7",
+        },
+      },
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+    },
+    "controlplaneCloudfrontLoggingBucket7CE6BDBA": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W35",
+              "reason": "This S3 bucket is used as the access logging bucket for CloudFront Distribution",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "controlplaneCloudfrontLoggingBucketPolicy66645966": Object {
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "controlplaneCloudfrontLoggingBucket7CE6BDBA",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "controlplaneCloudfrontLoggingBucket7CE6BDBA",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "controlplaneCloudfrontLoggingBucket7CE6BDBA",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "controlplaneS3Bucket2CBB3164": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "LifecycleConfiguration": Object {
+          "Rules": Array [
+            Object {
+              "NoncurrentVersionTransitions": Array [
+                Object {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 90,
+                },
+              ],
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "LoggingConfiguration": Object {
+          "DestinationBucketName": Object {
+            "Ref": "controlplaneS3LoggingBucket20CD6DB0",
+          },
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:cr-owned:/:69b200d3",
+            "Value": "true",
+          },
+        ],
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "controlplaneS3BucketPolicyDB1661F9": Object {
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "F16",
+              "reason": "Public website bucket policy requires a wildcard principal",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "controlplaneS3Bucket2CBB3164",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "controlplaneS3Bucket2CBB3164",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "controlplaneS3Bucket2CBB3164",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": Object {
+                "CanonicalUser": Object {
+                  "Fn::GetAtt": Array [
+                    "controlplaneCloudFrontDistributionOrigin1S3OriginE9820082",
+                    "S3CanonicalUserId",
+                  ],
+                },
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "controlplaneS3Bucket2CBB3164",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "controlplaneS3LoggingBucket20CD6DB0": Object {
+      "DeletionPolicy": "Retain",
+      "Metadata": Object {
+        "cfn_nag": Object {
+          "rules_to_suppress": Array [
+            Object {
+              "id": "W35",
+              "reason": "This S3 bucket is used as the access logging bucket for another bucket",
+            },
+          ],
+        },
+      },
+      "Properties": Object {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketEncryption": Object {
+          "ServerSideEncryptionConfiguration": Array [
+            Object {
+              "ServerSideEncryptionByDefault": Object {
+                "SSEAlgorithm": "AES256",
+              },
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": Object {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "VersioningConfiguration": Object {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "controlplaneS3LoggingBucketPolicyD24B1A7E": Object {
+      "Properties": Object {
+        "Bucket": Object {
+          "Ref": "controlplaneS3LoggingBucket20CD6DB0",
+        },
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:*",
+              "Condition": Object {
+                "Bool": Object {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "controlplaneS3LoggingBucket20CD6DB0",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "controlplaneS3LoggingBucket20CD6DB0",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "customCachePolicy710E759B": Object {
+      "Properties": Object {
+        "CachePolicyConfig": Object {
+          "DefaultTTL": 0,
+          "MaxTTL": 1,
+          "MinTTL": 0,
+          "Name": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "testcustomCachePolicy3921FC3A-",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+              ],
+            ],
+          },
+          "ParametersInCacheKeyAndForwardedToOrigin": Object {
+            "CookiesConfig": Object {
+              "CookieBehavior": "none",
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "EnableAcceptEncodingGzip": true,
+            "HeadersConfig": Object {
+              "HeaderBehavior": "whitelist",
+              "Headers": Array [
+                "authorization",
+              ],
+            },
+            "QueryStringsConfig": Object {
+              "QueryStringBehavior": "none",
+            },
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::CachePolicy",
+    },
+    "todoAuthorizer28BECB52": Object {
+      "Properties": Object {
+        "IdentitySource": "method.request.header.Authorization",
+        "Name": "testtodoAuthorizerC3282D69",
+        "ProviderARNs": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "TODOUserPoolB2242677",
+              "Arn",
+            ],
+          },
+        ],
+        "RestApiId": Object {
+          "Ref": "todoappbackendapi8D2202DC",
+        },
+        "Type": "COGNITO_USER_POOLS",
+      },
+      "Type": "AWS::ApiGateway::Authorizer",
     },
     "todoappaccesslogs17D6476B": Object {
       "DeletionPolicy": "Retain",
@@ -211,7 +1164,7 @@ Object {
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "todoappbackendapiDeployment0F74DA5677ac922f4265c36bcdf9473d76d3528d": Object {
+    "todoappbackendapiDeployment0F74DA56868d974a1e09179f6e29845eedf43160": Object {
       "DependsOn": Array [
         "RequestValidatorB6FDBF18",
         "todoappbackendapitodotodoIdDELETE0F39924D",
@@ -245,7 +1198,7 @@ Object {
           "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"ip\\":\\"$context.identity.sourceIp\\",\\"user\\":\\"$context.identity.user\\",\\"caller\\":\\"$context.identity.caller\\",\\"requestTime\\":\\"$context.requestTime\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"resourcePath\\":\\"$context.resourcePath\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\"}",
         },
         "DeploymentId": Object {
-          "Ref": "todoappbackendapiDeployment0F74DA5677ac922f4265c36bcdf9473d76d3528d",
+          "Ref": "todoappbackendapiDeployment0F74DA56868d974a1e09179f6e29845eedf43160",
         },
         "MethodSettings": Array [
           Object {
@@ -281,7 +1234,10 @@ Object {
     },
     "todoappbackendapitodoGET50F454FD": Object {
       "Properties": Object {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": Object {
+          "Ref": "todoAuthorizer28BECB52",
+        },
         "HttpMethod": "GET",
         "Integration": Object {
           "Credentials": Object {
@@ -302,6 +1258,7 @@ Object {
     \\"subject\\": \\"$util.escapeJavaScript($item.subject.S)\\",
     \\"description\\": \\"$util.escapeJavaScript($item.description.S)\\",
     \\"dueDate\\": $item.dueDate.N,
+    \\"isCompleted\\": $item.isCompleted.BOOL,
     \\"createdTimeInMills\\": $item.createdTimeInMills.N
     #if(\\"$!item.lastModifiedTimeInMills.N\\" != \\"\\")
     ,
@@ -337,7 +1294,7 @@ Object {
                     "Ref": "TODOTable8589412C",
                   },
                   "\\",
-  \\"ProjectionExpression\\": \\"id, subject, description, dueDate, createdTimeInMills, lastModifiedTimeInMills\\",
+  \\"ProjectionExpression\\": \\"id, subject, description, dueDate, createdTimeInMills, lastModifiedTimeInMills, isCompleted\\",
   \\"FilterExpression\\": \\"begins_with(id, :id)\\",
   \\"ExpressionAttributeValues\\": {
       \\":id\\": {\\"S\\": \\"todo-\\"}
@@ -410,7 +1367,10 @@ Object {
     },
     "todoappbackendapitodoPUT3C8BE992": Object {
       "Properties": Object {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": Object {
+          "Ref": "todoAuthorizer28BECB52",
+        },
         "HttpMethod": "PUT",
         "Integration": Object {
           "Credentials": Object {
@@ -427,6 +1387,7 @@ Object {
   \\"subject\\": \\"$util.escapeJavaScript($input.path('$.Attributes.subject.S')).replaceAll(\\"\\\\\\\\'\\",\\"'\\")\\",
   \\"description\\": \\"$util.escapeJavaScript($input.path('$.Attributes.description.S')).replaceAll(\\"\\\\\\\\'\\",\\"'\\")\\",
   \\"id\\": \\"$input.path('$.Attributes.id.S')\\",
+  \\"isCompleted\\": $input.path('$.Attributes.isCompleted.BOOL'),
   \\"createdTimeInMills\\": $input.path('$.Attributes.createdTimeInMills.N'),
   \\"dueDate\\": $input.path('$.Attributes.dueDate.N')
 }
@@ -462,6 +1423,9 @@ Object {
                 "",
                 Array [
                   "#set($dueDate = $input.path('$.dueDate'))
+#if($!dueDate)
+#set($dueDate = -1)
+#end
 #set($subject = \\"$util.escapeJavaScript($input.path('$.subject'))\\")
 #set($description = \\"$util.escapeJavaScript($input.path('$.description'))\\")
 {
@@ -475,7 +1439,7 @@ Object {
         \\"S\\": \\"todo-$context.requestId\\"
       }
   },
-  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, createdTimeInMills = :ct\\",
+  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, createdTimeInMills = :ct, isCompleted = :ic\\",
   \\"ExpressionAttributeValues\\": {
       \\":s\\": {
         \\"S\\": \\"$subject\\"
@@ -488,6 +1452,9 @@ Object {
       },
       \\":ct\\": {
         \\"N\\": \\"$context.requestTimeEpoch\\"
+      },
+      \\":ic\\": {
+        \\"BOOL\\": \\"False\\"
       }
   },
   \\"ConditionExpression\\": \\"attribute_not_exists(id)\\",
@@ -585,7 +1552,6 @@ Object {
           "required": Array [
             "subject",
             "description",
-            "dueDate",
           ],
           "type": "object",
         },
@@ -606,7 +1572,10 @@ Object {
     },
     "todoappbackendapitodotodoIdDELETE0F39924D": Object {
       "Properties": Object {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": Object {
+          "Ref": "todoAuthorizer28BECB52",
+        },
         "HttpMethod": "DELETE",
         "Integration": Object {
           "Credentials": Object {
@@ -728,7 +1697,10 @@ Object {
     },
     "todoappbackendapitodotodoIdPOST275E728C": Object {
       "Properties": Object {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": Object {
+          "Ref": "todoAuthorizer28BECB52",
+        },
         "HttpMethod": "POST",
         "Integration": Object {
           "Credentials": Object {
@@ -746,6 +1718,7 @@ Object {
   \\"id\\": \\"$input.path('$.Attributes.id.S')\\",
   \\"description\\": \\"$util.escapeJavaScript($input.path('$.Attributes.description.S'))\\",
   \\"dueDate\\": $input.path('$.Attributes.dueDate.N')\\",
+  \\"isCompleted\\": $input.path('$.Attributes.isCompleted.BOOL'),
   \\"createdTimeInMills\\": $input.path('$.Attributes.createdTimeInMills.N'),
   \\"lastModifiedTimeInMills\\": $input.path('$.Attributes.lastModifiedTimeInMills.N'),  
 }
@@ -781,9 +1754,13 @@ Object {
                 "",
                 Array [
                   "#set($dueDate = $input.path('$.dueDate'))
+#if($!dueDate)
+#set($dueDate = -1)
+#end          
 #set($subject = \\"$util.escapeJavaScript($input.path('$.subject'))\\")
 #set($description = \\"$util.escapeJavaScript($input.path('$.description'))\\")
 #set($todoId = \\"$util.escapeJavaScript($input.params('todoId'))\\")  
+#set($isCompleted = \\"$input.path('$.isCompleted')\\")
 {
   \\"TableName\\": \\"",
                   Object {
@@ -795,7 +1772,7 @@ Object {
         \\"S\\": \\"todo-$todoId\\"
       }
   },
-  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, lastModifiedTimeInMills = :ct\\",
+  \\"UpdateExpression\\": \\"set subject = :s, description = :d, dueDate = :dd, lastModifiedTimeInMills = :ct, isCompleted = :ic\\",
   \\"ExpressionAttributeValues\\": {
       \\":s\\": {
         \\"S\\": \\"$subject\\"
@@ -808,7 +1785,10 @@ Object {
       },
       \\":ct\\": {
         \\"N\\": \\"$context.requestTimeEpoch\\"
-      }
+      },
+      \\":ic\\": {
+        \\"BOOL\\": \\"$isCompleted\\"
+      }      
   },
   \\"ConditionExpression\\": \\"attribute_exists(id)\\",
   \\"ReturnValues\\": \\"ALL_NEW\\"
@@ -882,6 +1862,49 @@ Object {
         },
       },
       "Type": "AWS::ApiGateway::Method",
+    },
+    "userpoolclientDA356A8E": Object {
+      "Properties": Object {
+        "AllowedOAuthFlows": Array [
+          "implicit",
+          "code",
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": Array [
+          "profile",
+          "phone",
+          "email",
+          "openid",
+          "aws.cognito.signin.user.admin",
+        ],
+        "CallbackURLs": Array [
+          "https://example.com",
+        ],
+        "ExplicitAuthFlows": Array [
+          "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+          "ALLOW_CUSTOM_AUTH",
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+        ],
+        "ReadAttributes": Array [
+          "email",
+          "email_verified",
+          "nickname",
+          "preferred_username",
+        ],
+        "SupportedIdentityProviders": Array [
+          "COGNITO",
+        ],
+        "UserPoolId": Object {
+          "Ref": "TODOUserPoolB2242677",
+        },
+        "WriteAttributes": Array [
+          "email",
+          "nickname",
+          "preferred_username",
+        ],
+      },
+      "Type": "AWS::Cognito::UserPoolClient",
     },
   },
   "Rules": Object {

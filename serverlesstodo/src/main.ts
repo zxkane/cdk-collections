@@ -1,14 +1,22 @@
+import * as crypto from 'crypto';
 import * as path from 'path';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
-import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration } from 'aws-cdk-lib';
-import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model } from 'aws-cdk-lib/aws-apigateway';
+import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws } from 'aws-cdk-lib';
+import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model, CognitoUserPoolsAuthorizer, AuthorizationType, IAuthorizer } from 'aws-cdk-lib/aws-apigateway';
+import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { IUserPool, IUserPoolClient, UserPool, AccountRecovery, ClientAttributes, UserPoolClient, UserPoolClientIdentityProvider } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, TableEncryption, BillingMode, StreamViewType, ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { ServicePrincipal, Role, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Construct } from 'constructs';
-import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
-import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BucketDeployment, Source, CacheControl, StorageClass } from 'aws-cdk-lib/aws-s3-deployment';
+import { AwsCustomResource, PhysicalResourceId, AwsCustomResourcePolicy } from 'aws-cdk-lib/custom-resources';
+import { Construct } from 'constructs';
+
+interface UserPoolInfo {
+  userpool: IUserPool;
+  client: IUserPoolClient;
+}
 
 export class TODOStack extends Stack {
   readonly gatewayRole: Role;
@@ -17,6 +25,8 @@ export class TODOStack extends Stack {
     super(scope, id, props);
 
     // define resources here...
+    const poolInfo = this.createUserPool();
+
     const todoTable = new Table(this, 'TODOTable', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
       removalPolicy: RemovalPolicy.RETAIN,
@@ -67,8 +77,11 @@ export class TODOStack extends Stack {
       validateRequestBody: true,
       validateRequestParameters: true,
     });
-    this.createToDoAPI(api, todoTable, requestValidator);
-    
+    const auth = new CognitoUserPoolsAuthorizer(this, 'todoAuthorizer', {
+      cognitoUserPools: [poolInfo.userpool],
+    });
+    this.createToDoAPI(api, todoTable, requestValidator, auth);
+
     const cloudFrontS3 = new CloudFrontToS3(this, 'control-plane', {
       insertHttpSecurityHeaders: false,
       cloudFrontDistributionProps: {
@@ -94,7 +107,46 @@ export class TODOStack extends Stack {
         },
       },
     });
-    new BucketDeployment(this, 'DeployWebsite', {
+    const amplifyConfFile = 'aws-exports.json';
+    const sdkCall = {
+      service: 'S3',
+      action: 'putObject',
+      parameters: {
+        Body: `{
+  "aws_project_region": "${Aws.REGION}",
+  "Auth": {
+    "region": "${Aws.REGION}",
+    "userPoolId": "${poolInfo.userpool.userPoolId}",
+    "userPoolWebClientId": "${poolInfo.client.userPoolClientId}",
+    "authenticationFlowType": "USER_SRP_AUTH"
+  },
+  "API": {
+    "endpoints": [
+      {
+        "name": "backend-api",
+        "endpoint": "https://${cloudFrontS3.cloudFrontWebDistribution.distributionDomainName}/prod/"
+      }
+    ]
+  }
+}`,
+        Bucket: cloudFrontS3.s3Bucket!.bucketName,
+        Key: amplifyConfFile,
+      },
+      physicalResourceId: PhysicalResourceId.fromResponse('ETag'),
+    };
+    const createAwsExportsJson = new AwsCustomResource(
+      this,
+      'CreateAwsExports',
+      {
+        onCreate: sdkCall,
+        onUpdate: sdkCall,
+        installLatestAwsSdk: false,
+        policy: AwsCustomResourcePolicy.fromSdkCalls({
+          resources: [cloudFrontS3.s3Bucket!.arnForObjects(amplifyConfFile)],
+        }),
+      },
+    );
+    const websiteDeployment = new BucketDeployment(this, 'DeployWebsite', {
       sources: [
         Source.asset(path.join(__dirname, '../frontend/dist/'), {
           exclude: [],
@@ -107,16 +159,83 @@ export class TODOStack extends Stack {
       cacheControl: [CacheControl.maxAge(Duration.days(7))],
       storageClass: StorageClass.INTELLIGENT_TIERING,
       distribution: cloudFrontS3.cloudFrontWebDistribution,
-      distributionPaths: ['/index.html',],
+      distributionPaths: ['/index.html', `/${amplifyConfFile}`, `/${strHash(this.resolve(sdkCall.parameters.Body).toString())}`],
     });
-    
+    websiteDeployment.node.addDependency(createAwsExportsJson);
+
     new CfnOutput(this, 'TODOAppUrl', {
       value: `https://${cloudFrontS3.cloudFrontWebDistribution.distributionDomainName}`,
       description: 'url of TODO app',
-    });    
+    });
   }
 
-  private createToDoAPI(api: RestApi, table: ITable, requestValidator: RequestValidator): void {
+  createUserPool(): UserPoolInfo {
+    const userpool = new UserPool(this, 'TODOUserPool', {
+      signInAliases: {
+        email: true,
+      },
+      keepOriginal: {
+        email: true,
+      },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: false,
+        },
+      },
+      passwordPolicy: {
+        minLength: 12,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: true,
+        tempPasswordValidity: Duration.days(3),
+      },
+      accountRecovery: AccountRecovery.EMAIL_ONLY,
+      selfSignUpEnabled: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    const standardCognitoAttributes = {
+      email: true,
+      emailVerified: true,
+      nickname: true,
+      preferredUsername: true,
+      name: true,
+    };
+    const clientReadAttributes = new ClientAttributes()
+      .withStandardAttributes(standardCognitoAttributes);
+
+    const clientWriteAttributes = new ClientAttributes()
+      .withStandardAttributes({
+        ...standardCognitoAttributes,
+        emailVerified: false,
+      });
+
+    // 👇 User Pool Client
+    const client = new UserPoolClient(this, 'userpool-client', {
+      userPool: userpool,
+      authFlows: {
+        adminUserPassword: true,
+        custom: true,
+        userSrp: true,
+      },
+      oAuth: undefined,
+      supportedIdentityProviders:
+        [
+          UserPoolClientIdentityProvider.COGNITO,
+        ],
+      readAttributes: clientReadAttributes,
+      writeAttributes: clientWriteAttributes,
+    });
+
+    return {
+      userpool,
+      client,
+    };
+  }
+
+  private createToDoAPI(api: RestApi, table: ITable, requestValidator: RequestValidator, auth: IAuthorizer): void {
     const todoResourceName = 'todo';
 
     const todoModel = api.addModel('todo-model', {
@@ -139,6 +258,8 @@ export class TODOStack extends Stack {
     });
     const todoAPI = api.root.addResource(todoResourceName, {
       defaultMethodOptions: {
+        authorizer: auth,
+        authorizationType: AuthorizationType.COGNITO,
       },
     });
 
@@ -465,6 +586,12 @@ export class TODOStack extends Stack {
       ],
     });
   }
+}
+
+function strHash(content: string): string {
+  const sum = crypto.createHash('sha256');
+  sum.update(content);
+  return sum.digest('hex');
 }
 
 // for development, use account/region from cdk cli

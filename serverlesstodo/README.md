@@ -20,15 +20,15 @@ npx projen
 npm i --prefix frontend
 npm run build --prefix frontend
 ```
-3. deploy 
+3. deploy
 ```bash
 npx cdk deploy
 ```
-    1. Deploy with api gateway allowing local debugging frontend
+* Deploy with api gateway allowing CORS for local frontend(`http://localhost:3000/`) debugging
 ```bash
 npx cdk deploy -c LocalDebugging=true
 ```
-    2. Support third party OIDC providers(such as Auth0, Okta, Keycloak) as federation login
+* Support third party OIDC providers(such as Auth0, Okta, Keycloak) as federation login
 Create a secret in AWS Secrets Manager like below json,
 ```json
 {

@@ -15,14 +15,32 @@
 yarn install --check-files --frozen-lockfile
 npx projen
 ```
-1. build frontend project
+2. build frontend project
 ```bash
 npm i --prefix frontend
 npm run build --prefix frontend
 ```
-1. deploy 
+3. deploy 
 ```bash
 npx cdk deploy
+```
+    1. Deploy with api gateway allowing local debugging frontend
+```bash
+npx cdk deploy -c LocalDebugging=true
+```
+    2. Support third party OIDC providers(such as Auth0, Okta, Keycloak) as federation login
+Create a secret in AWS Secrets Manager like below json,
+```json
+{
+"clientId":"client id from OIDC provider",
+"clientSecret":"client secret from OIDC provider",
+"issuerUrl":"domain from OIDC provider",
+"name":"any readable name for UI"
+}
+```
+Then deploy the app with the secret ARN
+```bash
+npx cdk deploy -c OIDCSerectArn=arn:aws:secretsmanager:ap-southeast-1:<account id>:secret:auth0-todolist-RZcKC1
 ```
 
 ## API Spec

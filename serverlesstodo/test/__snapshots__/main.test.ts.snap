@@ -47,6 +47,25 @@ Object {
         ],
       },
     },
+    "UserPoolDomain": Object {
+      "Description": "url of user pool domain",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "TODOUserPoolCognitoDomain4908E0CE",
+            },
+            ".auth.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".amazoncognito.com",
+          ],
+        ],
+      },
+    },
     "todoappbackendapiEndpoint8BBE7B48": Object {
       "Value": Object {
         "Fn::Join": Array [
@@ -162,7 +181,29 @@ Object {
               Object {
                 "Ref": "userpoolclientDA356A8E",
               },
-              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\"\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
+              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\",\\\\n    \\\\\\"oauth\\\\\\": {\\\\n      \\\\\\"name\\\\\\": \\\\\\"undefined\\\\\\",\\\\n      \\\\\\"domain\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "TODOUserPoolCognitoDomain4908E0CE",
+              },
+              ".auth.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "\\\\\\",\\\\n      \\\\\\"responseType\\\\\\": \\\\\\"code\\\\\\"\\\\n    }\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
@@ -173,7 +214,7 @@ Object {
               Object {
                 "Ref": "controlplaneS3Bucket2CBB3164",
               },
-              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"responsePath\\":\\"ETag\\"}}",
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4\\"}}",
             ],
           ],
         },
@@ -204,7 +245,29 @@ Object {
               Object {
                 "Ref": "userpoolclientDA356A8E",
               },
-              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\"\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
+              "\\\\\\",\\\\n    \\\\\\"authenticationFlowType\\\\\\": \\\\\\"USER_SRP_AUTH\\\\\\",\\\\n    \\\\\\"oauth\\\\\\": {\\\\n      \\\\\\"name\\\\\\": \\\\\\"undefined\\\\\\",\\\\n      \\\\\\"domain\\\\\\": \\\\\\"",
+              Object {
+                "Ref": "TODOUserPoolCognitoDomain4908E0CE",
+              },
+              ".auth.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "controlplaneCloudFrontDistributionBB89BCF1",
+                  "DomainName",
+                ],
+              },
+              "\\\\\\",\\\\n      \\\\\\"responseType\\\\\\": \\\\\\"code\\\\\\"\\\\n    }\\\\n  },\\\\n  \\\\\\"API\\\\\\": {\\\\n    \\\\\\"endpoints\\\\\\": [\\\\n      {\\\\n        \\\\\\"name\\\\\\": \\\\\\"backend-api\\\\\\",\\\\n        \\\\\\"endpoint\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
@@ -215,7 +278,7 @@ Object {
               Object {
                 "Ref": "controlplaneS3Bucket2CBB3164",
               },
-              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"responsePath\\":\\"ETag\\"}}",
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4\\"}}",
             ],
           ],
         },
@@ -452,7 +515,7 @@ Object {
         "DistributionPaths": Array [
           "/index.html",
           "/aws-exports.json",
-          "/b28c94b2195c8ed259f0b415aaee3f39b0b2920a4537611499fa044956917a21",
+          "/cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4",
         ],
         "Prune": false,
         "RetainOnDelete": false,
@@ -468,7 +531,7 @@ Object {
           },
         ],
         "SourceObjectKeys": Array [
-          "e64f46d7953cd0483e513e858606fe768f23af34dc1c0b50483965e55634f6a0.zip",
+          "9c602d1b3e5a4b516472e0b593534f44c599d5a940da2d4ef23f3108a2ae0822.zip",
         ],
         "SystemMetadata": Object {
           "cache-control": "max-age=604800",
@@ -574,6 +637,15 @@ Object {
       },
       "Type": "AWS::Cognito::UserPool",
       "UpdateReplacePolicy": "Delete",
+    },
+    "TODOUserPoolCognitoDomain4908E0CE": Object {
+      "Properties": Object {
+        "Domain": "todolist-userpool",
+        "UserPoolId": Object {
+          "Ref": "TODOUserPoolB2242677",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolDomain",
     },
     "apigatewayroleE6D48DBD": Object {
       "Properties": Object {
@@ -1082,22 +1154,234 @@ Object {
       },
       "Type": "AWS::CloudFront::CachePolicy",
     },
-    "todoAuthorizer28BECB52": Object {
+    "todoAuthFunc71B25BA9": Object {
+      "DependsOn": Array [
+        "todoAuthFuncServiceRoleDefaultPolicyC4D66451",
+        "todoAuthFuncServiceRole8E659A6E",
+      ],
       "Properties": Object {
-        "IdentitySource": "method.request.header.Authorization",
-        "Name": "testtodoAuthorizerC3282D69",
-        "ProviderARNs": Array [
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "bd3f4325b711555b8b46f3f421af8339288bc876561454ce37322c5e7a086c60.zip",
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "ISSUERS": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://cognito-idp.",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  ".amazonaws.com/",
+                  Object {
+                    "Ref": "TODOUserPoolB2242677",
+                  },
+                ],
+              ],
+            },
+            "RESOURCE_PREFIX": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "arn:",
+                  Object {
+                    "Ref": "AWS::Partition",
+                  },
+                  ":execute-api:",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  ":",
+                  Object {
+                    "Ref": "AWS::AccountId",
+                  },
+                  ":",
+                  Object {
+                    "Ref": "todoappbackendapi8D2202DC",
+                  },
+                ],
+              ],
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "todoAuthFuncServiceRole8E659A6E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+        "Timeout": 5,
+        "TracingConfig": Object {
+          "Mode": "Active",
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "todoAuthFuncServiceRole8E659A6E": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
           Object {
-            "Fn::GetAtt": Array [
-              "TODOUserPoolB2242677",
-              "Arn",
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
             ],
           },
         ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "todoAuthFuncServiceRoleDefaultPolicyC4D66451": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "todoAuthFuncServiceRoleDefaultPolicyC4D66451",
+        "Roles": Array [
+          Object {
+            "Ref": "todoAuthFuncServiceRole8E659A6E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "todoAuthFunctesttodoAuthorizerC3282D69Permissions80597BD5": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "todoAuthFunc71B25BA9",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "todoappbackendapi8D2202DC",
+              },
+              "/authorizers/",
+              Object {
+                "Ref": "todoAuthorizer28BECB52",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "todoAuthorizer28BECB52": Object {
+      "Properties": Object {
+        "AuthorizerResultTtlInSeconds": 0,
+        "AuthorizerUri": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Fn::Select": Array [
+                  1,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "todoAuthFunc71B25BA9",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ":apigateway:",
+              Object {
+                "Fn::Select": Array [
+                  3,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "todoAuthFunc71B25BA9",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ":lambda:path/2015-03-31/functions/",
+              Object {
+                "Fn::GetAtt": Array [
+                  "todoAuthFunc71B25BA9",
+                  "Arn",
+                ],
+              },
+              "/invocations",
+            ],
+          ],
+        },
+        "IdentitySource": "method.request.header.authorization",
+        "IdentityValidationExpression": "^Bearer\\\\s(.*)",
+        "Name": "testtodoAuthorizerC3282D69",
         "RestApiId": Object {
           "Ref": "todoappbackendapi8D2202DC",
         },
-        "Type": "COGNITO_USER_POOLS",
+        "Type": "TOKEN",
       },
       "Type": "AWS::ApiGateway::Authorizer",
     },
@@ -1164,7 +1448,7 @@ Object {
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "todoappbackendapiDeployment0F74DA56868d974a1e09179f6e29845eedf43160": Object {
+    "todoappbackendapiDeployment0F74DA56a2b6f9c3cb1d7eeaaa5efef100452a18": Object {
       "DependsOn": Array [
         "RequestValidatorB6FDBF18",
         "todoappbackendapitodotodoIdDELETE0F39924D",
@@ -1198,7 +1482,7 @@ Object {
           "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"ip\\":\\"$context.identity.sourceIp\\",\\"user\\":\\"$context.identity.user\\",\\"caller\\":\\"$context.identity.caller\\",\\"requestTime\\":\\"$context.requestTime\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"resourcePath\\":\\"$context.resourcePath\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\"}",
         },
         "DeploymentId": Object {
-          "Ref": "todoappbackendapiDeployment0F74DA56868d974a1e09179f6e29845eedf43160",
+          "Ref": "todoappbackendapiDeployment0F74DA56a2b6f9c3cb1d7eeaaa5efef100452a18",
         },
         "MethodSettings": Array [
           Object {
@@ -1234,7 +1518,7 @@ Object {
     },
     "todoappbackendapitodoGET50F454FD": Object {
       "Properties": Object {
-        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizationType": "CUSTOM",
         "AuthorizerId": Object {
           "Ref": "todoAuthorizer28BECB52",
         },
@@ -1367,7 +1651,7 @@ Object {
     },
     "todoappbackendapitodoPUT3C8BE992": Object {
       "Properties": Object {
-        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizationType": "CUSTOM",
         "AuthorizerId": Object {
           "Ref": "todoAuthorizer28BECB52",
         },
@@ -1572,7 +1856,7 @@ Object {
     },
     "todoappbackendapitodotodoIdDELETE0F39924D": Object {
       "Properties": Object {
-        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizationType": "CUSTOM",
         "AuthorizerId": Object {
           "Ref": "todoAuthorizer28BECB52",
         },
@@ -1697,7 +1981,7 @@ Object {
     },
     "todoappbackendapitodotodoIdPOST275E728C": Object {
       "Properties": Object {
-        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizationType": "CUSTOM",
         "AuthorizerId": Object {
           "Ref": "todoAuthorizer28BECB52",
         },

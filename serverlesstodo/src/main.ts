@@ -111,7 +111,7 @@ export class TODOStack extends Stack {
       },
     });
 
-    const poolInfo = this.createUserPool(cloudFrontS3.cloudFrontWebDistribution.distributionDomainName);
+    const poolInfo = this.createUserPool(`https://${cloudFrontS3.cloudFrontWebDistribution.distributionDomainName}`);
     this.createToDoAPI(api, todoTable, requestValidator, poolInfo);
 
     const amplifyConfFile = 'aws-exports.json';
@@ -302,19 +302,19 @@ export class TODOStack extends Stack {
       oAuth: oidcProvider ? {
         callbackUrls: (/true/i).test(this.node.tryGetContext('LocalDebugging')) ?
           [
-            `https://${siteUrl}`,
+            siteUrl,
             'http://localhost:3000/',
           ]
           : [
-            `https://${siteUrl}`,
+            siteUrl,
           ],
         logoutUrls: (/true/i).test(this.node.tryGetContext('LocalDebugging')) ?
           [
-            `https://${siteUrl}`,
+            siteUrl,
             'http://localhost:3000/',
           ]
           : [
-            `https://${siteUrl}`,
+            siteUrl,
           ],
       } : undefined,
       supportedIdentityProviders: oidcProvider ? [

@@ -1,21 +1,28 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
-import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws } from 'aws-cdk-lib';
-import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model, CognitoUserPoolsAuthorizer, AuthorizationType, IAuthorizer } from 'aws-cdk-lib/aws-apigateway';
+import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws, Arn } from 'aws-cdk-lib';
+import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model, CognitoUserPoolsAuthorizer, AuthorizationType, TokenAuthorizer } from 'aws-cdk-lib/aws-apigateway';
 import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { IUserPool, IUserPoolClient, UserPool, AccountRecovery, ClientAttributes, UserPoolClient, UserPoolClientIdentityProvider } from 'aws-cdk-lib/aws-cognito';
+import { IUserPool, IUserPoolClient, UserPool, AccountRecovery, ClientAttributes, UserPoolClient, UserPoolClientIdentityProvider, UserPoolIdentityProviderOidc, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, TableEncryption, BillingMode, StreamViewType, ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { ServicePrincipal, Role, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { BucketDeployment, Source, CacheControl, StorageClass } from 'aws-cdk-lib/aws-s3-deployment';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { AwsCustomResource, PhysicalResourceId, AwsCustomResourcePolicy } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
+import { Architecture, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 
 interface UserPoolInfo {
   userpool: IUserPool;
   client: IUserPoolClient;
+  oidc: {
+    domain: string;
+    signinUrl: string;
+  };  
 }
 
 export class TODOStack extends Stack {
@@ -25,8 +32,6 @@ export class TODOStack extends Stack {
     super(scope, id, props);
 
     // define resources here...
-    const poolInfo = this.createUserPool();
-
     const todoTable = new Table(this, 'TODOTable', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
       removalPolicy: RemovalPolicy.RETAIN,
@@ -77,10 +82,6 @@ export class TODOStack extends Stack {
       validateRequestBody: true,
       validateRequestParameters: true,
     });
-    const auth = new CognitoUserPoolsAuthorizer(this, 'todoAuthorizer', {
-      cognitoUserPools: [poolInfo.userpool],
-    });
-    this.createToDoAPI(api, todoTable, requestValidator, auth);
 
     const cloudFrontS3 = new CloudFrontToS3(this, 'control-plane', {
       insertHttpSecurityHeaders: false,
@@ -107,6 +108,10 @@ export class TODOStack extends Stack {
         },
       },
     });
+    
+    const poolInfo = this.createUserPool(cloudFrontS3.cloudFrontWebDistribution.distributionDomainName);
+    this.createToDoAPI(api, todoTable, requestValidator, poolInfo);    
+    
     const amplifyConfFile = 'aws-exports.json';
     const sdkCall = {
       service: 'S3',
@@ -119,6 +124,13 @@ export class TODOStack extends Stack {
     "userPoolId": "${poolInfo.userpool.userPoolId}",
     "userPoolWebClientId": "${poolInfo.client.userPoolClientId}",
     "authenticationFlowType": "USER_SRP_AUTH"
+    ${poolInfo.oidc ? `,"oauth": {
+      "domain": "${poolInfo.oidc?.domain}",
+      "scope": ["email", "openid", "aws.cognito.signin.user.admin", "profile"],
+      "redirectSignIn": "${poolInfo.oidc?.signinUrl}",
+      "redirectSignOut": "${poolInfo.oidc?.signinUrl}",
+      "responseType": "code"
+    }` : ''}    
   },
   "API": {
     "endpoints": [
@@ -168,8 +180,34 @@ export class TODOStack extends Stack {
       description: 'url of TODO app',
     });
   }
+  
+  private createAuthorizer(resourceName: string, issuer: string, api: RestApi, requiredGroup?: string) {
+    const authFunc = new NodejsFunction(this, `${resourceName}AuthFunc`, {
+      entry: path.join(__dirname, './lambda.d/authorizer/index.ts'),
+      handler: 'handler',
+      architecture: Architecture.ARM_64,
+      timeout: Duration.seconds(5),
+      memorySize: 128,
+      runtime: Runtime.NODEJS_16_X,
+      tracing: Tracing.ACTIVE,
+      environment: {
+        ISSUER: issuer,
+        RESOURCE_PREFIX: Arn.format({
+          service: 'execute-api',
+          resource: api.restApiId,
+        }, Stack.of(this)),
+      },
+    });
+    if (requiredGroup) {authFunc.addEnvironment('REQUIRED_GROUP', requiredGroup!);}
+    return new TokenAuthorizer(this, `${resourceName}Authorizer`, {
+      handler: authFunc,
+      resultsCacheTtl: Duration.seconds(0),
+      identitySource: 'method.request.header.authorization',
+      validationRegex: '^Bearer\\s(.*)',
+    });
+  }  
 
-  createUserPool(): UserPoolInfo {
+  createUserPool(siteUrl: string): UserPoolInfo {
     const userpool = new UserPool(this, 'TODOUserPool', {
       signInAliases: {
         email: true,
@@ -211,7 +249,43 @@ export class TODOStack extends Stack {
         ...standardCognitoAttributes,
         emailVerified: false,
       });
+      
+    const poolDomain = userpool.addDomain('CognitoDomain', {
+      cognitoDomain: {
+        domainPrefix: this.node.tryGetContext('CognitoDomainPrefix') ?? 'todolist-userpool',
+      },
+      customDomain: undefined,
+    });
 
+    new CfnOutput(this, 'UserPoolDomain', {
+      value: poolDomain.cloudFrontDomainName,
+      description: 'url of user pool domain',
+    });
+    
+    const oidcSecretArn = this.node.tryGetContext('OIDCSerectArn');
+    var oidcProvider;
+    if (oidcSecretArn) {
+      const secret = Secret.fromSecretAttributes(this, 'OIDCSecret', {
+        secretCompleteArn: oidcSecretArn,
+      });
+      oidcProvider = new UserPoolIdentityProviderOidc(this, 'FedarationOIDC', {
+        clientId: secret.secretValueFromJson('clientId').toString(),
+        clientSecret: secret.secretValueFromJson('clientSecret').toString(),
+        issuerUrl: secret.secretValueFromJson('issuerUrl').toString(),
+        name: secret.secretValueFromJson('name').toString(),
+        userPool: userpool,
+        scopes: [
+          'email',
+          'profile',
+          'openid',
+        ],
+        attributeMapping: {
+          email: ProviderAttribute.other('EMAIL'),
+        },
+      });
+      userpool.registerIdentityProvider(oidcProvider);
+    }    
+    
     // 👇 User Pool Client
     const client = new UserPoolClient(this, 'userpool-client', {
       userPool: userpool,
@@ -220,11 +294,18 @@ export class TODOStack extends Stack {
         custom: true,
         userSrp: true,
       },
-      oAuth: undefined,
-      supportedIdentityProviders:
+      oAuth: oidcProvider ? {
+        callbackUrls: [
+          `https://${siteUrl}`,
+        ],
+      } : undefined,
+      supportedIdentityProviders: oidcProvider ? [
+        UserPoolClientIdentityProvider.COGNITO,
+        UserPoolClientIdentityProvider.custom(oidcProvider.providerName),
+      ] :
         [
           UserPoolClientIdentityProvider.COGNITO,
-        ],
+        ],        
       readAttributes: clientReadAttributes,
       writeAttributes: clientWriteAttributes,
     });
@@ -232,10 +313,17 @@ export class TODOStack extends Stack {
     return {
       userpool,
       client,
+      oidc: oidcProvider ? {
+        domain: userpool.userPoolProviderUrl,
+        signinUrl: siteUrl,
+      } : {
+        domain: `https://cognito-idp.${Aws.REGION}.amazonaws.com/${userpool.userPoolId}`,
+        signinUrl: siteUrl,
+      },      
     };
   }
 
-  private createToDoAPI(api: RestApi, table: ITable, requestValidator: RequestValidator, auth: IAuthorizer): void {
+  private createToDoAPI(api: RestApi, table: ITable, requestValidator: RequestValidator, poolinfo: UserPoolInfo): void {
     const todoResourceName = 'todo';
 
     const todoModel = api.addModel('todo-model', {
@@ -256,10 +344,12 @@ export class TODOStack extends Stack {
         required: ['subject', 'description'],
       },
     });
+    
+    const auth = this.createAuthorizer(todoResourceName, poolinfo.oidc.domain, api);
     const todoAPI = api.root.addResource(todoResourceName, {
       defaultMethodOptions: {
         authorizer: auth,
-        authorizationType: AuthorizationType.COGNITO,
+        authorizationType: (auth instanceof CognitoUserPoolsAuthorizer) ? AuthorizationType.COGNITO : AuthorizationType.CUSTOM,
       },
     });
 

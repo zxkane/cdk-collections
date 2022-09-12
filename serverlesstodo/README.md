@@ -1,5 +1,7 @@
 # Serverless TODO app
 
+**It's a companion code repo of series of blog posts [Build serverless web application with AWS Serverless](https://kane.mx/posts/2022/build-serverless-app-on-aws/intro/).** 
+
 ## Deploy from source
 
 ### Prerequisites

@@ -11,7 +11,7 @@
 - Install node.js LTS version, such as 14.x
 - [Install yarn][install-yarn]
 
-### Deploy it from source
+### Deploy web application from source
 1. install dependencies
 ```bash
 yarn install --check-files --frozen-lockfile
@@ -19,6 +19,9 @@ npx projen
 ```
 2. build frontend project
 ```bash
+git submodule init
+git submodule sync
+git submodule update
 npm i --prefix frontend
 npm run build --prefix frontend
 ```
@@ -44,6 +47,15 @@ Then deploy the app with the secret ARN
 ```bash
 npx cdk deploy -c OIDCSerectArn=arn:aws:secretsmanager:ap-southeast-1:<account id>:secret:auth0-todolist-RZcKC1
 ```
+
+### Deploy CI/CD pipeline from source
+1. [create source repo connection][codestar-connection]
+2. Deploy pipeline via CLI
+```bash
+npx cdk deploy -c OIDCSerectArn=arn:aws:secretsmanager:ap-southeast-1:<account id>:secret:auth0-todolist-RZcKC1 TodolistPipelineStack -c SourceConnectionArn=arn:aws:codestar-connections:ap-southeast-1:<account id>:connection/59e3b9fd-b2a9-4bbf-b417-01c74326a58f
+```
+A CodePipeline will be created in your account to build, test and deploy the 
+`Todolist` web application continously when source repo is changed.
 
 ## API Spec
 
@@ -117,3 +129,4 @@ Response:
 
 [install-yarn]: https://classic.yarnpkg.com/lang/en/docs/install/
 [configure-aws-cli]: https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-chap-configure.html
+[codestar-connection]: https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscodestarconnections.html

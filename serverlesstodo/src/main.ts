@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
-import { App, Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws, Arn } from 'aws-cdk-lib';
+import { Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws, Arn } from 'aws-cdk-lib';
 import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model, CognitoUserPoolsAuthorizer, AuthorizationType, TokenAuthorizer, Cors, CfnMethod } from 'aws-cdk-lib/aws-apigateway';
 import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -715,15 +715,3 @@ function strHash(content: string): string {
   sum.update(content);
   return sum.digest('hex');
 }
-
-// for development, use account/region from cdk cli
-const devEnv = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION,
-};
-
-const app = new App();
-
-new TODOStack(app, 'serverlesstodo', { env: devEnv });
-
-app.synth();

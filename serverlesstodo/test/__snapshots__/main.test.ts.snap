@@ -189,14 +189,14 @@ Object {
               Object {
                 "Ref": "AWS::Region",
               },
-              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"",
+              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
                   "DomainName",
                 ],
               },
-              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"",
+              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
@@ -214,7 +214,7 @@ Object {
               Object {
                 "Ref": "controlplaneS3Bucket2CBB3164",
               },
-              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4\\"}}",
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"4f0f1641ce58052f5a54125ad759c20572d71550ce71858f16d846bb89b4910c\\"}}",
             ],
           ],
         },
@@ -253,14 +253,14 @@ Object {
               Object {
                 "Ref": "AWS::Region",
               },
-              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"",
+              ".amazoncognito.com\\\\\\",\\\\n      \\\\\\"scope\\\\\\": [\\\\\\"email\\\\\\", \\\\\\"openid\\\\\\", \\\\\\"aws.cognito.signin.user.admin\\\\\\", \\\\\\"profile\\\\\\"],\\\\n      \\\\\\"redirectSignIn\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
                   "DomainName",
                 ],
               },
-              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"",
+              "\\\\\\",\\\\n      \\\\\\"redirectSignOut\\\\\\": \\\\\\"https://",
               Object {
                 "Fn::GetAtt": Array [
                   "controlplaneCloudFrontDistributionBB89BCF1",
@@ -278,7 +278,7 @@ Object {
               Object {
                 "Ref": "controlplaneS3Bucket2CBB3164",
               },
-              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4\\"}}",
+              "\\",\\"Key\\":\\"aws-exports.json\\"},\\"physicalResourceId\\":{\\"id\\":\\"4f0f1641ce58052f5a54125ad759c20572d71550ce71858f16d846bb89b4910c\\"}}",
             ],
           ],
         },
@@ -515,7 +515,7 @@ Object {
         "DistributionPaths": Array [
           "/index.html",
           "/aws-exports.json",
-          "/cd8c24d1b341179cf841f05f3171c4dde3bd0e0c942887140a18ead08b76f6d4",
+          "/4f0f1641ce58052f5a54125ad759c20572d71550ce71858f16d846bb89b4910c",
         ],
         "Prune": false,
         "RetainOnDelete": false,
@@ -531,7 +531,7 @@ Object {
           },
         ],
         "SourceObjectKeys": Array [
-          "9c602d1b3e5a4b516472e0b593534f44c599d5a940da2d4ef23f3108a2ae0822.zip",
+          "98ce89984f0270af96e80f4400d8f7c5642a00e18e5b34522bb7e43b8a1b5d4e.zip",
         ],
         "SystemMetadata": Object {
           "cache-control": "max-age=604800",

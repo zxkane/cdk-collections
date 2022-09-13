@@ -3,7 +3,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   cdkVersion: '2.1.0',
   defaultReleaseBranch: 'main',
   name: 'serverlesstodo',
-
+  appEntrypoint: 'app.ts',
   deps: [
     '@aws-solutions-constructs/aws-cloudfront-s3',
     '@aws-lambda-powertools/logger',

@@ -5,7 +5,7 @@ import { Stack, StackProps, RemovalPolicy, CfnOutput, Fn, Duration, Aws, Arn } f
 import { RestApi, Resource, AwsIntegration, JsonSchemaType, LogGroupLogDestination, AccessLogFormat, MethodLoggingLevel, RequestValidator, Model, CognitoUserPoolsAuthorizer, AuthorizationType, TokenAuthorizer, Cors, CfnMethod } from 'aws-cdk-lib/aws-apigateway';
 import { SecurityPolicyProtocol, HttpVersion, OriginProtocolPolicy, ViewerProtocolPolicy, CachePolicy, CacheHeaderBehavior, AllowedMethods } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { IUserPool, IUserPoolClient, UserPool, AccountRecovery, ClientAttributes, UserPoolClient, UserPoolClientIdentityProvider, UserPoolIdentityProviderOidc, UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
+import { IUserPool, IUserPoolClient, UserPool, AccountRecovery, ClientAttributes, UserPoolClient, UserPoolClientIdentityProvider, UserPoolIdentityProviderOidc, UserPoolDomain, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { Table, AttributeType, TableEncryption, BillingMode, StreamViewType, ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { ServicePrincipal, Role, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Architecture, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
@@ -287,6 +287,9 @@ export class TODOStack extends Stack {
           'openid',
           'email',
         ],
+        attributeMapping: {
+          email: ProviderAttribute.other('email'),
+        }
       });
       userpool.registerIdentityProvider(oidcProvider);
     }

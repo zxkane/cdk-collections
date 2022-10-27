@@ -1,0 +1,116 @@
+openapi: "3.0.3"
+info:
+  title: "httpapi-to-sqs"
+  version: "v1.0.0"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"  
+servers:
+- url:
+  variables:
+    basePath:
+      default: ""
+paths:
+  /i:
+    post:
+      description: "Writing sessions, metrics and events"
+      operationId: "sendEvents"
+      parameters:
+      - name: "content-type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/events"
+        required: true
+      responses:
+        "404":
+          description: "404 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+        "200":
+          description: "200 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        "400":
+          description: "400 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+        "500":
+          description: "500 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-request-validator: "requestvalidator"
+      x-amazon-apigateway-integration:
+        credentials: "{{integrationRoleArn}}"
+        integrationSubtype: "SQS-SendMessage"
+        requestParameters:
+          MessageAttributes: >-
+            {
+              "sourceIp":{
+                "StringValue":"${context.identity.sourceIp}",
+                "DataType":"String"
+              },
+              "apiTimestamp":{
+                "StringValue":"${context.requestTimeEpoch}",
+                "DataType":"Number"
+              }
+            }
+          MessageBody: "$request.body"
+          QueueUrl: "{{queueUrl}}"
+        type: "aws_proxy"
+        connectionType: "INTERNET"
+        payloadFormatVersion: "1.0"
+        timeoutInMillis: 2000
+components:
+  schemas:
+    events:
+      type: object
+      required:
+        - app_key
+        - device_id
+      properties:
+        app_key:
+          type: string
+          example: d7d3f96f594f26acd566577a1501e3c82c7ba8fc
+        device_id:
+          type: string
+          example: b452f74e-4770-48f9-b850-eac57240d547
+x-amazon-apigateway-request-validators:
+  requestvalidator:
+    validateRequestParameters: true
+    validateRequestBody: false
+x-amazon-apigateway-cors:
+  allowOrigins:
+    - '*'
+  maxAge: 3600
+  allowMethods:
+    - POST
+    - OPTIONS
+  exposeHeaders:
+    - x-apigateway-header
+    - x-amz-date
+    - content-type
+  allowHeaders:
+    - x-apigateway-header
+    - x-amz-date
+    - content-type

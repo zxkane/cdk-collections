@@ -1,0 +1,607 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot 1`] = `
+{
+  "Outputs": {
+    "HttpAPIEndpoint": {
+      "Description": "url of http api",
+      "Value": {
+        "Fn::GetAtt": [
+          "httpapitosqs",
+          "ApiEndpoint",
+        ],
+      },
+    },
+    "resttosqsEndpointB1E7811A": {
+      "Export": {
+        "Name": "APIEndpoint",
+      },
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "resttosqsE0E272C0",
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            {
+              "Ref": "resttosqsDeploymentStageprod83FF0214",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "e845402ce43b66fc6f20df4a239f20f8662eb6c7f920b94cf6542dd0e64ce0f7.zip",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CreateOpenAPIDefinitionCustomResourcePolicy21371A0D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:PutObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "provisioningbucketBB9BDC09",
+                        "Arn",
+                      ],
+                    },
+                    "/install/openapi-*.yaml",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:DeleteObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "provisioningbucketBB9BDC09",
+                        "Arn",
+                      ],
+                    },
+                    "/install/openapi-*.yaml",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CreateOpenAPIDefinitionCustomResourcePolicy21371A0D",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CreateOpenAPIDefinitionF556A317": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "CreateOpenAPIDefinitionCustomResourcePolicy21371A0D",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"S3","action":"putObject","parameters":{"Body":"openapi: \\"3.0.3\\"\\ninfo:\\n  title: \\"httpapi-to-sqs\\"\\n  version: \\"v1.0.0\\"\\n  license:\\n    name: \\"Apache 2.0\\"\\n    url: \\"https://www.apache.org/licenses/LICENSE-2.0.html\\"  \\nservers:\\n- url:\\n  variables:\\n    basePath:\\n      default: \\"\\"\\npaths:\\n  /i:\\n    post:\\n      description: \\"Writing sessions, metrics and events\\"\\n      operationId: \\"sendEvents\\"\\n      parameters:\\n      - name: \\"content-type\\"\\n        in: \\"header\\"\\n        required: true\\n        schema:\\n          type: \\"string\\"\\n      requestBody:\\n        content:\\n          application/x-www-form-urlencoded:\\n            schema:\\n              $ref: \\"#/components/schemas/events\\"\\n        required: true\\n      responses:\\n        \\"404\\":\\n          description: \\"404 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"200\\":\\n          description: \\"200 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n            Access-Control-Allow-Origin:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"400\\":\\n          description: \\"400 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"500\\":\\n          description: \\"500 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n      x-amazon-apigateway-request-validator: \\"requestvalidator\\"\\n      x-amazon-apigateway-integration:\\n        credentials: \\"",
+              {
+                "Fn::GetAtt": [
+                  "apigatewayroleE6D48DBD",
+                  "Arn",
+                ],
+              },
+              "\\"\\n        integrationSubtype: \\"SQS-SendMessage\\"\\n        requestParameters:\\n          MessageAttributes: >-\\n            {\\n              \\"sourceIp\\":{\\n                \\"StringValue\\":\\"\${context.identity.sourceIp}\\",\\n                \\"DataType\\":\\"String\\"\\n              },\\n              \\"apiTimestamp\\":{\\n                \\"StringValue\\":\\"\${context.requestTimeEpoch}\\",\\n                \\"DataType\\":\\"Number\\"\\n              }\\n            }\\n          MessageBody: \\"$request.body\\"\\n          QueueUrl: \\"",
+              {
+                "Ref": "eventqueue6D4A6A10",
+              },
+              "\\"\\n        type: \\"aws_proxy\\"\\n        connectionType: \\"INTERNET\\"\\n        payloadFormatVersion: \\"1.0\\"\\n        timeoutInMillis: 2000\\ncomponents:\\n  schemas:\\n    events:\\n      type: object\\n      required:\\n        - app_key\\n        - device_id\\n      properties:\\n        app_key:\\n          type: string\\n          example: d7d3f96f594f26acd566577a1501e3c82c7ba8fc\\n        device_id:\\n          type: string\\n          example: b452f74e-4770-48f9-b850-eac57240d547\\nx-amazon-apigateway-request-validators:\\n  requestvalidator:\\n    validateRequestParameters: true\\n    validateRequestBody: false\\nx-amazon-apigateway-cors:\\n  allowOrigins:\\n    - '*'\\n  maxAge: 3600\\n  allowMethods:\\n    - POST\\n    - OPTIONS\\n  exposeHeaders:\\n    - x-apigateway-header\\n    - x-amz-date\\n    - content-type\\n  allowHeaders:\\n    - x-apigateway-header\\n    - x-amz-date\\n    - content-type","Bucket":"",
+              {
+                "Ref": "provisioningbucketBB9BDC09",
+              },
+              "","Key":"install/openapi-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8.yaml"},"physicalResourceId":{"id":"openapi-upsert-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8"}}",
+            ],
+          ],
+        },
+        "Delete": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"S3","action":"deleteObject","parameters":{"Bucket":"",
+              {
+                "Ref": "provisioningbucketBB9BDC09",
+              },
+              "","Key":"install/openapi-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8.yaml"},"physicalResourceId":{"id":"openapi-delete-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8"}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"S3","action":"putObject","parameters":{"Body":"openapi: \\"3.0.3\\"\\ninfo:\\n  title: \\"httpapi-to-sqs\\"\\n  version: \\"v1.0.0\\"\\n  license:\\n    name: \\"Apache 2.0\\"\\n    url: \\"https://www.apache.org/licenses/LICENSE-2.0.html\\"  \\nservers:\\n- url:\\n  variables:\\n    basePath:\\n      default: \\"\\"\\npaths:\\n  /i:\\n    post:\\n      description: \\"Writing sessions, metrics and events\\"\\n      operationId: \\"sendEvents\\"\\n      parameters:\\n      - name: \\"content-type\\"\\n        in: \\"header\\"\\n        required: true\\n        schema:\\n          type: \\"string\\"\\n      requestBody:\\n        content:\\n          application/x-www-form-urlencoded:\\n            schema:\\n              $ref: \\"#/components/schemas/events\\"\\n        required: true\\n      responses:\\n        \\"404\\":\\n          description: \\"404 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"200\\":\\n          description: \\"200 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n            Access-Control-Allow-Origin:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"400\\":\\n          description: \\"400 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n        \\"500\\":\\n          description: \\"500 response\\"\\n          headers:\\n            Content-Type:\\n              schema:\\n                type: \\"string\\"\\n          content: {}\\n      x-amazon-apigateway-request-validator: \\"requestvalidator\\"\\n      x-amazon-apigateway-integration:\\n        credentials: \\"",
+              {
+                "Fn::GetAtt": [
+                  "apigatewayroleE6D48DBD",
+                  "Arn",
+                ],
+              },
+              "\\"\\n        integrationSubtype: \\"SQS-SendMessage\\"\\n        requestParameters:\\n          MessageAttributes: >-\\n            {\\n              \\"sourceIp\\":{\\n                \\"StringValue\\":\\"\${context.identity.sourceIp}\\",\\n                \\"DataType\\":\\"String\\"\\n              },\\n              \\"apiTimestamp\\":{\\n                \\"StringValue\\":\\"\${context.requestTimeEpoch}\\",\\n                \\"DataType\\":\\"Number\\"\\n              }\\n            }\\n          MessageBody: \\"$request.body\\"\\n          QueueUrl: \\"",
+              {
+                "Ref": "eventqueue6D4A6A10",
+              },
+              "\\"\\n        type: \\"aws_proxy\\"\\n        connectionType: \\"INTERNET\\"\\n        payloadFormatVersion: \\"1.0\\"\\n        timeoutInMillis: 2000\\ncomponents:\\n  schemas:\\n    events:\\n      type: object\\n      required:\\n        - app_key\\n        - device_id\\n      properties:\\n        app_key:\\n          type: string\\n          example: d7d3f96f594f26acd566577a1501e3c82c7ba8fc\\n        device_id:\\n          type: string\\n          example: b452f74e-4770-48f9-b850-eac57240d547\\nx-amazon-apigateway-request-validators:\\n  requestvalidator:\\n    validateRequestParameters: true\\n    validateRequestBody: false\\nx-amazon-apigateway-cors:\\n  allowOrigins:\\n    - '*'\\n  maxAge: 3600\\n  allowMethods:\\n    - POST\\n    - OPTIONS\\n  exposeHeaders:\\n    - x-apigateway-header\\n    - x-amz-date\\n    - content-type\\n  allowHeaders:\\n    - x-apigateway-header\\n    - x-amz-date\\n    - content-type","Bucket":"",
+              {
+                "Ref": "provisioningbucketBB9BDC09",
+              },
+              "","Key":"install/openapi-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8.yaml"},"physicalResourceId":{"id":"openapi-upsert-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8"}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DefaultStage": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "httpapitosqs",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "apigatewayroleDefaultPolicyFB5F907E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "eventqueue6D4A6A10",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "apigatewayroleDefaultPolicyFB5F907E",
+        "Roles": [
+          {
+            "Ref": "apigatewayroleE6D48DBD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "apigatewayroleE6D48DBD": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "eventqueue6D4A6A10": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "SqsManagedSseEnabled": true,
+        "VisibilityTimeout": 30,
+      },
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "httpapitosqs": {
+      "DependsOn": [
+        "CreateOpenAPIDefinitionCustomResourcePolicy21371A0D",
+        "CreateOpenAPIDefinitionF556A317",
+      ],
+      "Properties": {
+        "BodyS3Location": {
+          "Bucket": {
+            "Ref": "provisioningbucketBB9BDC09",
+          },
+          "Key": "install/openapi-4184f984fc42b74a6a74644a49b6e84acfe7755da849d7a47d52f296b47c0fe8.yaml",
+        },
+        "FailOnWarnings": false,
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "provisioningbucketBB9BDC09": {
+      "DeletionPolicy": "Delete",
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "resttosqsAccount9A1D9E43": {
+      "DeletionPolicy": "Retain",
+      "DependsOn": [
+        "resttosqsE0E272C0",
+      ],
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "resttosqsCloudWatchRoleC489D690",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "resttosqsCloudWatchRoleC489D690": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "resttosqsDeployment1EC2FEF396739e7fa377123903c7780f49efbf07": {
+      "Properties": {
+        "Description": "Automatically created by the RestApi construct",
+        "RestApiId": {
+          "Ref": "resttosqsE0E272C0",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "resttosqsDeploymentStageprod83FF0214": {
+      "Properties": {
+        "DeploymentId": {
+          "Ref": "resttosqsDeployment1EC2FEF396739e7fa377123903c7780f49efbf07",
+        },
+        "MethodSettings": [
+          {
+            "DataTraceEnabled": false,
+            "HttpMethod": "*",
+            "LoggingLevel": "ERROR",
+            "MetricsEnabled": true,
+            "ResourcePath": "/*",
+          },
+        ],
+        "RestApiId": {
+          "Ref": "resttosqsE0E272C0",
+        },
+        "StageName": "prod",
+        "TracingEnabled": false,
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "resttosqsE0E272C0": {
+      "Properties": {
+        "Body": {
+          "Fn::Join": [
+            "",
+            [
+              "openapi: "3.0.3"
+info:
+  title: "restful-api-to-sqs"
+  version: "v1.0.0"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"  
+servers:
+- url:
+  variables:
+    basePath:
+      default: ""
+paths:
+  /i:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+      - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |-
+            {
+              "statusCode" : 200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''OPTIONS,POST'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            responseTemplates:
+              application/json: |-
+                {}
+    post:
+      description: "Writing sessions, metrics and events"
+      operationId: "sendEvents"
+      parameters:
+      - name: "content-type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/events"
+        required: true
+      responses:
+        "404":
+          description: "404 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+        "200":
+          description: "200 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        "400":
+          description: "400 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+        "500":
+          description: "500 response"
+          headers:
+            Content-Type:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-request-validator: "requestvalidator"
+      x-amazon-apigateway-integration:
+        credentials: "",
+              {
+                "Fn::GetAtt": [
+                  "apigatewayroleE6D48DBD",
+                  "Arn",
+                ],
+              },
+              ""
+        httpMethod: "POST"
+        uri: "arn:\${AWS::Partition}:apigateway:\${AWS::Region}:sqs:path/\${AWS::AccountId}/",
+              {
+                "Fn::GetAtt": [
+                  "eventqueue6D4A6A10",
+                  "QueueName",
+                ],
+              },
+              ""
+        responses:
+          "4\\\\d{2}":
+            statusCode: "400"
+            responseTemplates:
+              application/json: "#if($input.path('$.Error.Code') == \\"InvalidMessageContents\\"\\
+                )\\n{\\n  \\"message\\": \\"The message contains characters outside the\\
+                \\ allowed set.\\"\\n}\\n#elseif($input.path('$.Error.Code') == \\"AWS.SimpleQueueService.UnsupportedOperation\\"\\
+                )\\n{\\n  \\"message\\": \\"Unsupported operation.\\"\\n}\\n#else\\n{\\n  \\"\\
+                message\\": \\"$input.path('$.Error.Code')\\"\\n}\\n#end"
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "{\\n  \\"result\\": \\"Success\\"\\n}\\n"
+            responseParameters:
+              "method.response.header.Access-Control-Allow-Origin": '''*'''              
+          "5\\\\d{2}":
+            statusCode: "500"
+            responseTemplates:
+              application/json: "{\\"result\\": \\"internal error\\"}"
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+        requestTemplates:
+          application/x-www-form-urlencoded: "Action=SendMessage&MessageBody=$util.base64Encode($input.body)\\
+            &MessageAttribute.1.Name=encoding&MessageAttribute.1.Value.StringValue=base64&MessageAttribute.1.Value.DataType=String\\
+            &MessageAttribute.2.Name=sourceIp&MessageAttribute.2.Value.StringValue=$context.identity.sourceIp&MessageAttribute.2.Value.DataType=String\\
+            &MessageAttribute.3.Name=apiTimestamp&MessageAttribute.3.Value.StringValue=$context.requestTimeEpoch&MessageAttribute.3.Value.DataType=Number"
+        passthroughBehavior: "when_no_match"
+        type: "aws"
+        timeoutInMillis: 2000
+components:
+  schemas:
+    events:
+      type: object
+      required:
+        - app_key
+        - device_id
+      properties:
+        app_key:
+          type: string
+          example: d7d3f96f594f26acd566577a1501e3c82c7ba8fc
+        device_id:
+          type: string
+          example: b452f74e-4770-48f9-b850-eac57240d547
+x-amazon-apigateway-request-validators:
+  requestvalidator:
+    validateRequestParameters: true
+    validateRequestBody: false",
+            ],
+          ],
+        },
+        "Name": "rest-to-sqs",
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

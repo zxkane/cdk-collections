@@ -1,5 +1,6 @@
 # AWS Infrastructure as Code(powered by AWS CDK) Collections
 
+- [Create/Import OpenAPI specification as Amazon API Gateway REST API or HTTP API](https://kane.mx/posts/2022/import-oas-as-api-on-aws/)
 - [**Web application with AWS Serverless**](https://kane.mx/posts/2022/build-serverless-app-on-aws/intro/)
 - [Three layers web game application hosted via ECS](https://github.com/zxkane/gameday-cdk)
 - [Serverless domain redirect](https://github.com/zxkane/serverless-domain-redirect)

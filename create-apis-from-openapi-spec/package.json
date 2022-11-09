@@ -47,6 +47,7 @@
   "dependencies": {
     "aws-cdk-lib": "^2.1.0",
     "constructs": "^10.0.5",
+    "js-yaml": "^4.1.0",
     "mustache": "^4.2.0"
   },
   "license": "Apache-2.0",

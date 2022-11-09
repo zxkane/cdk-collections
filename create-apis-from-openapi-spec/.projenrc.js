@@ -6,6 +6,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
 
   deps: [
     'mustache@^4.2.0',
+    'js-yaml@^4.1.0',
   ], /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   devDeps: [

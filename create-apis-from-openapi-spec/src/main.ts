@@ -1,15 +1,14 @@
-import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { App, Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
 import { MethodLoggingLevel, ApiDefinition, SpecRestApi } from 'aws-cdk-lib/aws-apigateway';
 import { CfnStage, CfnApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
-import { AwsCustomResource, PhysicalResourceId, AwsCustomResourcePolicy } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import * as Mustache from 'mustache';
+/* eslint @typescript-eslint/no-require-imports: "off" */
+const yaml = require('js-yaml');
 
 export class MyStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
@@ -28,62 +27,18 @@ export class MyStack extends Stack {
     bufferQueue.grantSendMessages(apiRole);
 
     // import openapi as http api
-    const bucket = new Bucket(this, 'provisioning-bucket', {
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
-
     const variables = {
       integrationRoleArn: apiRole.roleArn,
       queueName: bufferQueue.queueName,
       queueUrl: bufferQueue.queueUrl,
     };
-    const openAPISpec = this.resolve(Mustache.render(
-      fs.readFileSync(path.join(__dirname, './http-sqs.yaml'), 'utf-8'), variables));
-
-    const contentHash = strHash(JSON.stringify(openAPISpec));
-
-    const openAPIFile = `install/openapi-${contentHash}.yaml`;
-    const sdkPutCall = {
-      service: 'S3',
-      action: 'putObject',
-      parameters: {
-        Body: openAPISpec,
-        Bucket: bucket.bucketName,
-        Key: openAPIFile,
-      },
-      physicalResourceId: PhysicalResourceId.of(`openapi-upsert-${contentHash}`),
-    };
-    const sdkDeleteCall = {
-      service: 'S3',
-      action: 'deleteObject',
-      parameters: {
-        Bucket: bucket.bucketName,
-        Key: openAPIFile,
-      },
-      physicalResourceId: PhysicalResourceId.of(`openapi-delete-${contentHash}`),
-    };
-    const createOpenAPIFile = new AwsCustomResource(
-      this,
-      'CreateOpenAPIDefinition',
-      {
-        onCreate: sdkPutCall,
-        onUpdate: sdkPutCall,
-        onDelete: sdkDeleteCall,
-        installLatestAwsSdk: false,
-        policy: AwsCustomResourcePolicy.fromSdkCalls({
-          resources: [bucket.arnForObjects('install/openapi-*.yaml')],
-        }),
-      },
-    );
+    const openAPISpec = this.resolve(yaml.load(Mustache.render(
+      fs.readFileSync(path.join(__dirname, './http-sqs.yaml'), 'utf-8'), variables)));
 
     const httpApi = new CfnApi(this, 'http-api-to-sqs', {
-      bodyS3Location: {
-        bucket: bucket.bucketName,
-        key: openAPIFile,
-      },
+      body: openAPISpec,
       failOnWarnings: false,
     });
-    httpApi.node.addDependency(createOpenAPIFile);
 
     new CfnStage(this, 'DefaultStage', {
       apiId: httpApi.ref,
@@ -112,12 +67,6 @@ export class MyStack extends Stack {
       deployOptions,
     });
   }
-}
-
-function strHash(content: string): string {
-  const sum = crypto.createHash('sha256');
-  sum.update(content);
-  return sum.digest('hex');
 }
 
 const app = new App();
